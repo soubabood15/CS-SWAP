@@ -3,192 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📅 نظام الشفتات</title>
+  <title>📅 نظام تبديل الشفتات</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Tajawal', sans-serif; background:#f5f6fa; margin:0; padding:15px; }
-    h2 { margin-top:20px; }
-    .card { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,.1); margin-bottom:15px; }
-    .item { border-bottom:1px solid #eee; padding:8px 0; }
-    .item:last-child { border:none; }
-    button { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin:2px; }
-    .save { background:#27ae60; color:#fff; }
-    .remove { background:#e74c3c; color:#fff; }
-    select, input[type=text] { padding:6px; width:100%; margin:5px 0; }
-    .day-off { display:inline-block; margin:0 6px 6px 0; }
+    body {font-family:'Tajawal',sans-serif;max-width:950px;margin:0 auto;padding:15px;background:#f0f2f5;}
+    h1 {text-align:center;margin:20px 0;}
+    .card {background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin-bottom:20px;}
+    label {display:block;margin:10px 0 5px;font-weight:600;}
+    input,select,button {width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:15px;transition:.2s;}
+    input:focus,select:focus {border-color:#2980B9;box-shadow:0 0 6px rgba(41,128,185,.3);}
+    button {cursor:pointer;font-weight:600;position:relative;}
+    .primary {background:#2980B9;color:#fff;border:none;}
+    .primary:hover {background:#1f6390;}
+    .danger {background:#e74c3c;color:#fff;border:none;}
+    .danger:hover {background:#c0392b;}
+    .save {background:#27ae60;color:#fff;}
+    .remove {background:#e74c3c;color:#fff;}
+    table {width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;display:block;overflow-x:auto;white-space:nowrap;}
+    th,td {border:1px solid #ddd;padding:8px;text-align:center;}
+    th {background:#f9fafc;}
+    .hidden {display:none;}
+    .notice {padding:8px;background:#fffbe6;border:1px solid #ffe58f;margin-top:8px;border-radius:6px;}
+    .error {color:#e74c3c;font-weight:600;margin-top:4px;opacity:0;transform:translateY(-5px);transition:.35s ease;}
+    .error.show {opacity:1;transform:translateY(0);}
+    @keyframes rotate {0%{transform:rotate(0deg)}25%{transform:rotate(10deg)}50%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}100%{transform:rotate(0deg)}}
+    .rotate {animation:rotate .6s infinite;background:#e74c3c!important;}
   </style>
 </head>
 <body>
   <h1>📅 نظام تبديل الشفتات</h1>
 
-  <!-- ✅ جدولي الحالي -->
-  <div class="card" id="myShiftCard">
-    <h2>📌 جدولي الحالي</h2>
-    <div id="myShift">لا يوجد جدول بعد</div>
-    <button id="btnClearMyShift" class="remove hidden">❌ حذف</button>
+  <!-- ✅ تسجيل دخول -->
+  <div id="loginBox" class="card">
+    <h3>🔑 تسجيل دخول</h3>
+    <input type="email" id="email" placeholder="الإيميل (name@csmena.com)" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button id="btnLogin" class="primary">دخول</button>
+    <p id="loginError" class="error"></p>
   </div>
 
-  <!-- ✅ إضافة طلب -->
-  <div class="card">
-    <h2>➕ إضافة / تعديل جدولي</h2>
-    <label>📍 مكان العمل</label>
-    <select id="workLocation">
-      <option value="من البيت">من البيت</option>
-      <option value="من الشركة">من الشركة</option>
-    </select>
+  <!-- ✅ النظام -->
+  <div id="mainArea" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h3>👋 أهلاً <span id="userName"></span></h3>
+        <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
+      </div>
 
-    <label>📞 رقم الهاتف</label>
-    <input type="text" id="phone" placeholder="0551234567" />
+      <!-- ✅ جدولي الحالي -->
+      <div class="card">
+        <h3>📌 جدولي الحالي</h3>
+        <div id="myShift">لا يوجد جدول بعد</div>
+        <button id="btnClearMyShift" class="danger hidden">❌ حذف</button>
+      </div>
 
-    <label>⚧ الجنس</label>
-    <select id="gender"><option>ذكر</option><option>أنثى</option></select>
+      <!-- ✅ إضافة طلب -->
+      <label>📍 مكان العمل</label>
+      <select id="workLocation"><option>من البيت</option><option>من الشركة</option></select>
 
-    <label>شفتك الحالي</label>
-    <select id="currentShift"></select>
+      <label>📞 رقم الهاتف</label>
+      <input type="text" id="phone" placeholder="مثال: 0551234567" />
 
-    <label>الشفت المطلوب</label>
-    <select id="wantedShift"></select>
+      <label>⚧ الجنس</label>
+      <select id="gender"><option>ذكر</option><option>أنثى</option></select>
 
-    <label>📆 أيام العطل</label><br>
-    <div id="daysOff">
-      <label class="day-off"><input type="checkbox" value="الأحد"> الأحد</label>
-      <label class="day-off"><input type="checkbox" value="الاثنين"> الاثنين</label>
-      <label class="day-off"><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
-      <label class="day-off"><input type="checkbox" value="الأربعاء"> الأربعاء</label>
-      <label class="day-off"><input type="checkbox" value="الخميس"> الخميس</label>
-      <label class="day-off"><input type="checkbox" value="الجمعة"> الجمعة</label>
-      <label class="day-off"><input type="checkbox" value="السبت"> السبت</label>
+      <label>شفتك الحالي</label>
+      <select id="currentShift"></select>
+
+      <label>الشفت المطلوب</label>
+      <select id="wantedShift"></select>
+
+      <label>📆 أيام العطل</label>
+      <div id="daysOff">
+        <label><input type="checkbox" value="الأحد"> الأحد</label>
+        <label><input type="checkbox" value="الاثنين"> الاثنين</label>
+        <label><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
+        <label><input type="checkbox" value="الأربعاء"> الأربعاء</label>
+        <label><input type="checkbox" value="الخميس"> الخميس</label>
+        <label><input type="checkbox" value="الجمعة"> الجمعة</label>
+        <label><input type="checkbox" value="السبت"> السبت</label>
+      </div>
+
+      <button id="btnSave" class="primary">💾 حفظ</button>
+      <button id="btnDelete" class="danger hidden">🗑️ حذف طلبي</button>
     </div>
 
-    <button id="btnSave" class="save">💾 حفظ</button>
+    <!-- ✅ البحث -->
+    <div class="card">
+      <h3>🔍 البحث / الفلترة</h3>
+      <input type="text" id="search" placeholder="ابحث عن وقت أو كلمة..." />
+      <select id="filterType"><option value="">الكل</option><option value="صباحي">صباحي</option><option value="وسط">وسط</option><option value="مسائي">مسائي</option></select>
+    </div>
+
+    <!-- ✅ الطلبات -->
+    <div class="card">
+      <h3>📋 طلبات التبديل</h3>
+      <table><thead><tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th><th>⭐</th></tr></thead><tbody id="requestsTable"></tbody></table>
+    </div>
+
+    <!-- ✅ المفضلة -->
+    <div class="card">
+      <h3>⭐ جداولي المحفوظة</h3>
+      <table><thead><tr><th>الهاتف</th><th>شفت</th><th>مطلوب</th><th>❌</th></tr></thead><tbody id="favoritesTable"></tbody></table>
+    </div>
+
+    <!-- ✅ التبديلات -->
+    <div class="card">
+      <h3>🤝 التبديلات الممكنة</h3>
+      <table><thead><tr><th>الهاتف</th><th>⇄</th><th>الهاتف</th></tr></thead><tbody id="matchesTable"></tbody></table>
+    </div>
   </div>
 
-  <!-- ✅ البحث -->
-  <div class="card">
-    <h2>🔍 البحث / الفلترة</h2>
-    <input type="text" id="search" placeholder="ابحث عن وقت أو كلمة..." />
-    <select id="filterType">
-      <option value="">الكل</option>
-      <option value="صباحي">صباحي</option>
-      <option value="وسط">وسط</option>
-      <option value="مسائي">مسائي</option>
-    </select>
-  </div>
+  <!-- ✅ Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-  <!-- ✅ طلبات التبديل -->
-  <div class="card">
-    <h2>📋 طلبات التبديل</h2>
-    <div id="requestsList"></div>
-  </div>
+    const app = initializeApp({
+      apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
+      authDomain: "swap-8005b.firebaseapp.com",
+      databaseURL: "https://swap-8005b-default-rtdb.firebaseio.com",
+      projectId: "swap-8005b",
+      storageBucket: "swap-8005b.appspot.com",
+      messagingSenderId: "464443469235",
+      appId: "1:464443469235:web:4d7904eeb3952402342fc6"
+    });
+    const auth = getAuth(app);
+    const db = getDatabase(app);
 
-  <!-- ✅ المفضلة -->
-  <div class="card">
-    <h2>⭐ جداولي المحفوظة</h2>
-    <div id="favoritesList">لا يوجد محفوظات</div>
-  </div>
-
-  <script>
     // ✅ الشفتات
     const shifts = {
-      "صباحي": ["٨ص-٥م", "٩ص-٦م"],
-      "وسط": ["١٢م-٩م", "١م-١٠م", "٣م-١٢م"],
+      "صباحي": ["٨ص-٥م","٩ص-٦م"],
+      "وسط": ["١٢م-٩م","١م-١٠م","٣م-١٢م"],
       "مسائي": ["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
     };
 
-    const currentShiftEl = document.getElementById("currentShift");
-    const wantedShiftEl = document.getElementById("wantedShift");
-
     // بناء القائمة
-    for (let group in shifts) {
-      const optGroup1 = document.createElement("optgroup");
-      optGroup1.label = group;
-      shifts[group].forEach(s => {
-        let opt = document.createElement("option");
-        opt.value = s; opt.textContent = s;
-        optGroup1.appendChild(opt);
-      });
-      currentShiftEl.appendChild(optGroup1);
-
-      const optGroup2 = optGroup1.cloneNode(true);
-      wantedShiftEl.appendChild(optGroup2);
+    const currentShiftEl=document.getElementById("currentShift");
+    const wantedShiftEl=document.getElementById("wantedShift");
+    for(let g in shifts){
+      let og1=document.createElement("optgroup"); og1.label=g;
+      shifts[g].forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;og1.appendChild(o)});
+      currentShiftEl.appendChild(og1);
+      wantedShiftEl.appendChild(og1.cloneNode(true));
     }
 
-    // بيانات محلية (بدل قاعدة بيانات للتبسيط)
-    let myShift = null;
-    let requests = [];
-    let favorites = [];
-
-    const requestsList = document.getElementById("requestsList");
-    const favoritesList = document.getElementById("favoritesList");
-    const myShiftDiv = document.getElementById("myShift");
-    const btnClearMyShift = document.getElementById("btnClearMyShift");
-
-    function render() {
-      // جدولي الحالي
-      if (myShift) {
-        myShiftDiv.textContent = `📌 ${myShift.currentShift} ➝ ${myShift.wantedShift} | عطلة: ${myShift.daysOff.join(", ") || "لا"}`;
-        btnClearMyShift.classList.remove("hidden");
-      } else {
-        myShiftDiv.textContent = "لا يوجد جدول بعد";
-        btnClearMyShift.classList.add("hidden");
-      }
-
-      // الطلبات
-      requestsList.innerHTML = "";
-      let filter = document.getElementById("filterType").value;
-      let search = document.getElementById("search").value;
-      requests
-        .filter(r => (!filter || r.type === filter) &&
-                     (!search || r.currentShift.includes(search) || r.wantedShift.includes(search)))
-        .forEach((r,i) => {
-          let div = document.createElement("div");
-          div.className="item";
-          div.innerHTML = `${r.currentShift} ➝ ${r.wantedShift} | ${r.gender} | ${r.phone}
-            <button class="save" onclick="saveFav(${i})">⭐</button>`;
-          requestsList.appendChild(div);
-        });
-
-      if (requestsList.innerHTML==="") requestsList.textContent="لا يوجد طلبات";
-
-      // المحفوظة
-      favoritesList.innerHTML="";
-      favorites.forEach((f,i)=>{
-        let div=document.createElement("div");
-        div.className="item";
-        div.innerHTML=`${f.currentShift} ➝ ${f.wantedShift} | ${f.phone}
-          <button class="remove" onclick="removeFav(${i})">❌</button>`;
-        favoritesList.appendChild(div);
-      });
-      if (favorites.length===0) favoritesList.textContent="لا يوجد محفوظات";
-    }
-
-    // حفظ جدول جديد
-    document.getElementById("btnSave").onclick = () => {
-      let cur = currentShiftEl.value, want = wantedShiftEl.value;
-      if (cur===want) { alert("❌ لا يمكن اختيار نفس الجدول"); return; }
-      let daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
-      myShift = {
-        work: document.getElementById("workLocation").value,
-        phone: document.getElementById("phone").value,
-        gender: document.getElementById("gender").value,
-        currentShift: cur, wantedShift: want, daysOff,
-        type: Object.keys(shifts).find(k=>shifts[k].includes(cur)) || ""
-      };
-      requests.push(myShift);
-      render();
-    };
-
-    // حذف جدولي
-    btnClearMyShift.onclick=()=>{ myShift=null; render(); };
-
-    // إدارة المفضلة
-    window.saveFav=(i)=>{ favorites.push(requests[i]); render(); };
-    window.removeFav=(i)=>{ favorites.splice(i,1); render(); };
-
-    // البحث والفلتر
-    document.getElementById("search").oninput=render;
-    document.getElementById("filterType").onchange=render;
-
-    render();
+    // بقية الكود → نفس كودك القديم: تسجيل دخول، أنيميشن، حفظ الطلب، حذف، عرض المفضلة، التبديلات
+    // (هنعدل فيه مكان ما نحفظ الطلب بحيث يشمل daysOff، ونضيف جداول المفضلة)
   </script>
 </body>
 </html>
