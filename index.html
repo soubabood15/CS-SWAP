@@ -20,11 +20,7 @@
     .danger {background:#e74c3c;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .hidden {display:none;}
     #successMsg {display:none; background:#2ecc71; color:#fff; padding:10px; margin-bottom:10px; border-radius:5px;}
-    /* أنيميشن تسجيل الدخول */
-    @keyframes shake {0%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-8px);}80%{transform:translateX(8px);}100%{transform:translateX(0);}}
-    .shake { animation: shake 0.4s; }
-    #loginError {color:#e74c3c;font-weight:bold;opacity:0;transform:translateY(-5px);transition:all .3s ease;}
-    #loginError.show { opacity:1; transform:translateY(0);}
+    #loginError {color:#e74c3c;font-weight:bold;margin-top:6px;}
     .requestBox {border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#fafafa;text-align:right;}
     .requestBox strong {color:#2980B9;}
     .secondLine {font-size:13px;color:#555;margin-top:5px;}
@@ -68,7 +64,7 @@
         <select id="workLocation"><option>من البيت</option><option>من الشركة</option></select>
 
         <label>📞 رقم الهاتف</label>
-        <input type="text" id="phone" placeholder="0551234567" />
+        <input type="text" id="phone" placeholder="0551234567" inputmode="numeric" />
 
         <label>⚧ الجنس</label>
         <select id="gender"><option>ذكر</option><option>أنثى</option></select>
@@ -151,45 +147,67 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    let allRequests = {};
-    let savedRequests = {};
+    // عناصر DOM
+    const sidebar = document.getElementById("sidebar");
+    const loginBox = document.getElementById("loginBox");
+    const mainArea = document.getElementById("mainArea");
+    const btnLogin = document.getElementById("btnLogin");
+    const emailEl = document.getElementById("email");
+    const passEl = document.getElementById("password");
+    const loginError = document.getElementById("loginError");
+    const btnLogout = document.getElementById("btnLogout");
+    const btnLogoutTop = document.getElementById("btnLogoutTop");
+    const currentUserEmail = document.getElementById("currentUserEmail");
 
-    // ✅ تعريف الحقول
-    const phoneEl = document.getElementById("phone");
     const workLocationEl = document.getElementById("workLocation");
+    const phoneEl = document.getElementById("phone");
     const genderEl = document.getElementById("gender");
     const baseShiftEl = document.getElementById("baseShift");
     const wantedShiftEl = document.getElementById("wantedShift");
+    const btnSubmit = document.getElementById("btnSubmit");
+    const successMsg = document.getElementById("successMsg");
 
     const matchesEl = document.getElementById("matches");
     const allRequestsEl = document.getElementById("allRequests");
     const savedRequestsEl = document.getElementById("savedRequests");
     const myRequestsEl = document.getElementById("myRequests");
 
-    // ✅ الشفتات
+    const filterLocationEl = document.getElementById("filterLocation");
+    const filterShiftEl = document.getElementById("filterShift");
+
+    // بيانات
+    let allRequests = {};
+    let savedRequests = {};
+
+    // الشفتات
     const shifts = ["٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م","٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"];
     shifts.forEach(s=>{
       baseShiftEl.append(new Option(s,s));
       wantedShiftEl.append(new Option(s,s));
-      filterShift.append(new Option(s,s));
+      filterShiftEl.append(new Option(s,s));
     });
     document.querySelectorAll("#daysCustom select").forEach(sel=>{
       sel.append(new Option("--",""));
       shifts.forEach(s=>sel.append(new Option(s,s)));
     });
+    phoneEl.addEventListener("input", e => e.target.value = e.target.value.replace(/\D/g,""));
 
-    // ✅ تسجيل الدخول
-    btnLogin.addEventListener("click", async () => {
+    // تسجيل الدخول البسيط
+    async function handleLogin(){
+      loginError.textContent = "";
+      btnLogin.disabled = true;
+      btnLogin.textContent = "جاري الدخول...";
       try {
-        await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
-        loginError.classList.remove("show");
-      } catch (e) {
+        await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
+      } catch {
         loginError.textContent = "❌ الإيميل أو كلمة المرور خاطئة";
-        loginError.classList.add("show");
-        btnLogin.classList.add("shake");
-        setTimeout(()=>btnLogin.classList.remove("shake"),500);
+      } finally {
+        btnLogin.disabled = false;
+        btnLogin.textContent = "دخول";
       }
-    });
+    }
+    btnLogin.addEventListener("click", handleLogin);
+    [emailEl, passEl].forEach(el=>el.addEventListener("keydown", e=>{if(e.key==="Enter") handleLogin();}));
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -202,13 +220,14 @@
         loginBox.classList.remove("hidden");
         mainArea.classList.add("hidden");
         sidebar.classList.add("hidden");
+        currentUserEmail.textContent = "";
       }
     });
 
     btnLogout.addEventListener("click", () => signOut(auth));
     btnLogoutTop.addEventListener("click", () => signOut(auth));
 
-    // ✅ إرسال جدولي
+    // إرسال الجدول
     btnSubmit.addEventListener("click", async () => {
       const user=auth.currentUser;if(!user) return;
       const existing=Object.values(allRequests).find(r=>r.userId===user.uid);
@@ -216,7 +235,6 @@
 
       const phone=phoneEl.value.trim();
       if(!/^[0-9]{9,12}$/.test(phone)){alert("📞 أدخل رقم هاتف صحيح");return;}
-
       if(baseShiftEl.value===wantedShiftEl.value){alert("⚠️ الشفت المطلوب لا يمكن أن يساوي الحالي.");return;}
 
       const daysCustom={};
@@ -231,8 +249,8 @@
       successMsg.style.display="block";setTimeout(()=>successMsg.style.display="none",3000);
     });
 
-    // ✅ عرض الطلب
-    function renderBox(r,key,withDelete=false,withSave=false,isSaved=false){
+    // عرض الطلب
+    function renderBox(r,key,{withDelete=false,withSave=false,isSaved=false}={}){
       let html=`<div class="requestBox">
         <strong>📞 ${r.phone}</strong> | ${r.gender} | حالي: ${r.baseShift} | مطلوب: ${r.wantedShift}<br>
         <div class="secondLine">`;
@@ -253,52 +271,54 @@
     window.saveRequest=async k=>{const u=auth.currentUser;if(!u)return;await set(ref(db,`saved/${u.uid}/${k}`),allRequests[k]);}
     window.deleteSaved=async k=>{const u=auth.currentUser;if(!u)return;await remove(ref(db,`saved/${u.uid}/${k}`));}
 
-    // ✅ المطابقات
+    // المطابقات
     function renderMatches(){
       const u=auth.currentUser;if(!u)return;matchesEl.innerHTML="";
       const myK=Object.keys(allRequests).find(k=>allRequests[k].userId===u.uid);if(!myK)return;
       const my=allRequests[myK];
       Object.entries(allRequests).forEach(([k,r])=>{
         if(r.userId!==u.uid&&r.baseShift===my.wantedShift&&r.wantedShift===my.baseShift){
-          matchesEl.innerHTML+=renderBox(r,k,false,true);
+          matchesEl.innerHTML+=renderBox(r,k,{withSave:true});
         }
       });
     }
 
-    // ✅ كل الطلبات
+    // كل الطلبات
     function renderAll(){
       allRequestsEl.innerHTML="";
-      const loc=filterLocation.value,sh=filterShift.value;
+      const loc=filterLocationEl.value,sh=filterShiftEl.value;
+      const u=auth.currentUser;
       Object.entries(allRequests).forEach(([k,r])=>{
         if(loc&&r.workLocation!==loc) return;
         if(sh&&r.wantedShift!==sh) return;
-        allRequestsEl.innerHTML+=renderBox(r,k,false,true);
+        const canSave=!u||r.userId!==u.uid;
+        allRequestsEl.innerHTML+=renderBox(r,k,{withSave:canSave});
       });
     }
-    filterLocation.addEventListener("change",renderAll);
-    filterShift.addEventListener("change",renderAll);
+    filterLocationEl.addEventListener("change",renderAll);
+    filterShiftEl.addEventListener("change",renderAll);
 
-    // ✅ طلباتي
+    // طلباتي
     function renderMine(){
       const u=auth.currentUser;if(!u)return;myRequestsEl.innerHTML="";
       Object.entries(allRequests).forEach(([k,r])=>{
-        if(r.userId===u.uid) myRequestsEl.innerHTML+=renderBox(r,k,true,false);
+        if(r.userId===u.uid) myRequestsEl.innerHTML+=renderBox(r,k,{withDelete:true});
       });
     }
 
-    // ✅ المحفوظة
+    // المحفوظة
     function renderSaved(){
       const u=auth.currentUser;if(!u)return;savedRequestsEl.innerHTML="";
-      Object.entries(savedRequests).forEach(([k,r])=>savedRequestsEl.innerHTML+=renderBox(r,k,false,false,true));
+      Object.entries(savedRequests).forEach(([k,r])=>savedRequestsEl.innerHTML+=renderBox(r,k,{isSaved:true}));
     }
 
-    // ✅ تحميل البيانات
+    // تحميل البيانات
     function loadData(){
       onValue(ref(db,"requests"),snap=>{allRequests=snap.val()||{};renderMatches();renderAll();renderMine();});
       onValue(ref(db,"saved/"+auth.currentUser.uid),snap=>{savedRequests=snap.val()||{};renderSaved();});
     }
 
-    // ✅ تبديل الأقسام
+    // تبديل الأقسام
     document.querySelectorAll(".sidebar button[data-section]").forEach(btn=>{
       btn.addEventListener("click",()=>{
         allSection.classList.add("hidden");savedSection.classList.add("hidden");mineSection.classList.add("hidden");
