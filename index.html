@@ -20,7 +20,8 @@
     .primary {background:#2980B9;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .danger {background:#e74c3c;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .hidden {display:none;}
-    .week-table {margin-top:10px;}
+    .week-table select {width:100%;}
+    #successMsg {display:none; background:#2ecc71; color:#fff; padding:10px; margin-bottom:10px; border-radius:5px;}
   </style>
 </head>
 <body>
@@ -47,6 +48,8 @@
 
     <!-- ✅ بعد الدخول -->
     <div id="mainArea" class="hidden">
+      <div id="successMsg">✅ تم إرسال جدولك بنجاح</div>
+
       <!-- إدخال جدولي -->
       <div class="card">
         <h3>📝 تعبئة جدولي</h3>
@@ -67,10 +70,29 @@
           <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
         </select>
 
-        <label>🗓️ تعديل الأيام (استثناءات)</label>
+        <label>📌 الجدول المطلوب</label>
+        <select id="wantedShift">
+          <option>٨ص-٥م</option><option>٩ص-٦م</option>
+          <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
+          <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
+          <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
+        </select>
+
+        <label>🗓️ الاستثناءات</label>
         <table class="week-table">
-          <tr><th>اليوم</th><th>الدوام</th></tr>
-          <tbody id="daysCustom"></tbody>
+          <tr>
+            <th>الأحد</th><th>الاثنين</th><th>الثلاثاء</th>
+            <th>الأربعاء</th><th>الخميس</th><th>الجمعة</th><th>السبت</th>
+          </tr>
+          <tr id="daysCustom">
+            <td><select data-day="الأحد"><option value="">--</option></select></td>
+            <td><select data-day="الاثنين"><option value="">--</option></select></td>
+            <td><select data-day="الثلاثاء"><option value="">--</option></select></td>
+            <td><select data-day="الأربعاء"><option value="">--</option></select></td>
+            <td><select data-day="الخميس"><option value="">--</option></select></td>
+            <td><select data-day="الجمعة"><option value="">--</option></select></td>
+            <td><select data-day="السبت"><option value="">--</option></select></td>
+          </tr>
         </table>
 
         <label>📆 أيام العطلة</label>
@@ -96,7 +118,26 @@
       <!-- ✅ بقية الأقسام -->
       <div id="allSection" class="card hidden">
         <h3>📋 كل الطلبات</h3>
-        <input type="text" id="search" placeholder="🔍 بحث..." />
+        <div style="display:flex;gap:15px;flex-wrap:wrap">
+          <div>
+            <label>📍 مكان العمل</label>
+            <select id="filterLocation">
+              <option value="">الكل</option>
+              <option>من البيت</option>
+              <option>من الشركة</option>
+            </select>
+          </div>
+          <div>
+            <label>🎯 الجدول المطلوب</label>
+            <select id="filterWanted">
+              <option value="">الكل</option>
+              <option>٨ص-٥م</option><option>٩ص-٦م</option>
+              <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
+              <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
+              <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
+            </select>
+          </div>
+        </div>
         <table><thead><tr><th>الموظف</th><th>جدوله</th><th>📌</th></tr></thead><tbody id="allRequests"></tbody></table>
       </div>
 
@@ -130,11 +171,9 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
     const sidebar=document.getElementById("sidebar");
-    const userNameSpan=document.getElementById("userName");
     const btnLogin=document.getElementById("btnLogin");
     const emailEl=document.getElementById("email");
     const passEl=document.getElementById("password");
@@ -145,9 +184,10 @@
     const phoneEl=document.getElementById("phone");
     const genderEl=document.getElementById("gender");
     const baseShiftEl=document.getElementById("baseShift");
-    const daysCustomEl=document.getElementById("daysCustom");
+    const wantedShiftEl=document.getElementById("wantedShift");
     const btnSubmit=document.getElementById("btnSubmit");
     const matchesEl=document.getElementById("matches");
+    const successMsg=document.getElementById("successMsg");
 
     const allRequestsEl=document.getElementById("allRequests");
     const savedRequestsEl=document.getElementById("savedRequests");
@@ -158,23 +198,6 @@
     const mineSection=document.getElementById("mineSection");
 
     let allRequests={};
-
-    // بناء جدول تعديل الأيام
-    const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-    days.forEach(d=>{
-      const row=document.createElement("tr");
-      row.innerHTML=`<td>${d}</td>
-        <td>
-          <select data-day="${d}">
-            <option value="">-- نفس الأساسي --</option>
-            <option>٨ص-٥م</option><option>٩ص-٦م</option>
-            <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
-            <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
-            <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
-          </select>
-        </td>`;
-      daysCustomEl.appendChild(row);
-    });
 
     // تسجيل الدخول
     btnLogin.addEventListener("click",async()=>{
@@ -197,15 +220,26 @@
         if(s.value) daysCustom[s.dataset.day]=s.value;
       });
       const daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
+
       await push(ref(db,"requests"),{
         userId:user.uid,
         workLocation:workLocationEl.value,
         phone:phoneEl.value,
         gender:genderEl.value,
         baseShift:baseShiftEl.value,
+        wantedShift:wantedShiftEl.value,
         daysCustom,
         daysOff
       });
+
+      successMsg.style.display="block";
+      setTimeout(()=>successMsg.style.display="none",3000);
+    });
+
+    const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    const shifts=["٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م","٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"];
+    document.querySelectorAll("#daysCustom select").forEach(sel=>{
+      shifts.forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);});
     });
 
     // عرض جدول أسبوعي
@@ -221,7 +255,6 @@
       return html;
     }
 
-    // تحميل البيانات
     function loadData(){
       onValue(ref(db,"requests"),(snap)=>{
         allRequests=snap.val()||{};
@@ -232,13 +265,22 @@
     // كل الطلبات
     function renderAll(){
       allRequestsEl.innerHTML="";
+      const loc=document.getElementById("filterLocation").value;
+      const want=document.getElementById("filterWanted").value;
+
       Object.entries(allRequests).forEach(([key,r])=>{
+        if(loc && r.workLocation!==loc) return;
+        if(want && r.wantedShift!==want) return;
+
         const tr=document.createElement("tr");
         tr.innerHTML=`<td>${r.phone}</td><td>${renderSchedule(r)}</td><td><button class="primary">📌</button></td>`;
         tr.querySelector("button").onclick=()=>saveRequest(key,r);
         allRequestsEl.appendChild(tr);
       });
     }
+    ["filterLocation","filterWanted"].forEach(id=>{
+      document.getElementById(id).addEventListener("change",renderAll);
+    });
 
     // طلباتي
     function renderMine(){
@@ -261,8 +303,13 @@
       let myReq=Object.values(allRequests).find(r=>r.userId===user.uid);
       if(!myReq) return;
       Object.values(allRequests).forEach(r=>{
-        if(r.userId!==user.uid && r.baseShift===myReq.baseShift){
-          matchesEl.innerHTML+=`<div>أنا (${myReq.baseShift}) ⇄ ${r.phone} (${r.baseShift})</div>`;
+        if(r.userId!==user.uid && r.baseShift===myReq.wantedShift && r.wantedShift===myReq.baseShift){
+          matchesEl.innerHTML+=`
+            <div>
+              أنا (${myReq.baseShift} ➝ ${myReq.wantedShift})
+              ⇄
+              ${r.phone} (${r.baseShift} ➝ ${r.wantedShift})
+            </div>`;
         }
       });
     }
@@ -282,23 +329,10 @@
       });
     }
 
-    // حفظ طلب
     function saveRequest(key,r){
       const user=auth.currentUser;if(!user) return;
       set(ref(db,"saved/"+user.uid+"/"+key),r);
     }
 
     // التبديل بين الأقسام
-    document.querySelectorAll(".sidebar button[data-section]").forEach(btn=>{
-      btn.addEventListener("click",()=>{
-        allSection.classList.add("hidden");
-        savedSection.classList.add("hidden");
-        mineSection.classList.add("hidden");
-        if(btn.dataset.section==="all") allSection.classList.remove("hidden");
-        if(btn.dataset.section==="saved") savedSection.classList.remove("hidden");
-        if(btn.dataset.section==="mine") mineSection.classList.remove("hidden");
-      });
-    });
-  </script>
-</body>
-</html>
+    document.querySelectorAll(".sidebar
