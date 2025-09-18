@@ -3,381 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📅 نظام تبديل الشفتات</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
+  <title>📅 نظام الشفتات</title>
   <style>
-    body {
-      font-family: 'Tajawal', sans-serif;
-      max-width: 950px;
-      margin: 0 auto;
-      padding: 15px;
-      background: #f0f2f5;
-      color: #333;
-    }
-    h1 { text-align: center; margin: 15px 0; font-size: 24px; }
-    .card {
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,.08);
-      margin-bottom: 15px;
-      position: relative;
-      box-sizing: border-box;
-    }
-    label { display: block; margin: 8px 0 5px; font-weight: 600; }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 15px;
-      transition: .2s;
-      box-sizing: border-box;
-    }
-    input:focus, select:focus {
-      border-color: #2980B9;
-      box-shadow: 0 0 6px rgba(41,128,185,.3);
-    }
-    button {
-      cursor: pointer;
-      font-weight: 600;
-      position: relative;
-    }
-    .primary { background:#2980B9; color:#fff; border:none; }
-    .primary:hover { background:#1f6390; }
-    .danger { background:#e74c3c; color:#fff; border:none; }
-    .danger:hover { background:#c0392b; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-      display: block;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #f9fafc; }
-    .hidden { display: none; }
-    .notice {
-      padding: 8px;
-      background: #fffbe6;
-      border: 1px solid #ffe58f;
-      margin-top: 8px;
-      border-radius: 6px;
-    }
-    /* دوران الزر */
-    @keyframes rotate {
-      0%{transform:rotate(0deg)}
-      25%{transform:rotate(10deg)}
-      50%{transform:rotate(-10deg)}
-      75%{transform:rotate(10deg)}
-      100%{transform:rotate(0deg)}
-    }
-    .rotate {
-      animation: rotate .6s infinite;
-      background: #e74c3c !important;
-    }
-    /* رسالة خطأ */
-    .error {
-      color: #e74c3c;
-      font-weight: 600;
-      margin-top: 4px;
-      opacity: 0;
-      transform: translateY(-5px);
-      transition: .35s ease;
-    }
-    .error.show { opacity:1; transform:translateY(0); }
-    /* موبايل */
-    @media (max-width: 600px) {
-      h1 { font-size: 20px; }
-      input, select, button { font-size: 14px; padding: 9px; }
-      table { font-size: 12px; }
-    }
+    body { font-family: 'Tajawal', sans-serif; background:#f5f6fa; margin:0; padding:15px; }
+    h2 { margin-top:20px; }
+    .card { background:#fff; padding:15px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,.1); margin-bottom:15px; }
+    .item { border-bottom:1px solid #eee; padding:8px 0; }
+    .item:last-child { border:none; }
+    button { padding:6px 12px; border:none; border-radius:6px; cursor:pointer; margin:2px; }
+    .save { background:#27ae60; color:#fff; }
+    .remove { background:#e74c3c; color:#fff; }
+    select, input[type=text] { padding:6px; width:100%; margin:5px 0; }
+    .day-off { display:inline-block; margin:0 6px 6px 0; }
   </style>
 </head>
 <body>
   <h1>📅 نظام تبديل الشفتات</h1>
 
-  <!-- ✅ تسجيل دخول -->
-  <div id="loginBox" class="card">
-    <h3>🔑 تسجيل دخول</h3>
-    <input type="email" id="email" placeholder="الإيميل (name@csmena.com)" />
-    <input type="password" id="password" placeholder="كلمة المرور" />
-    <button id="btnLogin" class="primary">دخول</button>
-    <p id="loginError" class="error"></p>
+  <!-- ✅ جدولي الحالي -->
+  <div class="card" id="myShiftCard">
+    <h2>📌 جدولي الحالي</h2>
+    <div id="myShift">لا يوجد جدول بعد</div>
+    <button id="btnClearMyShift" class="remove hidden">❌ حذف</button>
   </div>
 
-  <!-- ✅ النظام -->
-  <div id="mainArea" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <h3>👋 أهلاً <span id="userName"></span></h3>
-        <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
-      </div>
+  <!-- ✅ إضافة طلب -->
+  <div class="card">
+    <h2>➕ إضافة / تعديل جدولي</h2>
+    <label>📍 مكان العمل</label>
+    <select id="workLocation">
+      <option value="من البيت">من البيت</option>
+      <option value="من الشركة">من الشركة</option>
+    </select>
 
-      <div id="myRequest" class="notice hidden"></div>
+    <label>📞 رقم الهاتف</label>
+    <input type="text" id="phone" placeholder="0551234567" />
 
-      <label>📍 مكان العمل</label>
-      <select id="workLocation">
-        <option value="من البيت">من البيت</option>
-        <option value="من الشركة">من الشركة</option>
-      </select>
+    <label>⚧ الجنس</label>
+    <select id="gender"><option>ذكر</option><option>أنثى</option></select>
 
-      <label>📞 رقم الهاتف</label>
-      <input type="text" id="phone" placeholder="مثال: 0551234567" />
+    <label>شفتك الحالي</label>
+    <select id="currentShift"></select>
 
-      <label>⚧ الجنس</label>
-      <select id="gender">
-        <option value="ذكر">ذكر</option>
-        <option value="أنثى">أنثى</option>
-      </select>
+    <label>الشفت المطلوب</label>
+    <select id="wantedShift"></select>
 
-      <label>شفتك الحالي</label>
-      <select id="currentShift">
-        <option value="11-8">11-8</option>
-        <option value="5-2">5-2</option>
-      </select>
-
-      <label>الشفت المطلوب</label>
-      <select id="wantedShift">
-        <option value="11-8">11-8</option>
-        <option value="5-2">5-2</option>
-      </select>
-
-      <button id="btnSubmit" class="primary">📩 إرسال الطلب</button>
-      <button id="btnDelete" class="danger hidden">🗑️ حذف طلبي</button>
+    <label>📆 أيام العطل</label><br>
+    <div id="daysOff">
+      <label class="day-off"><input type="checkbox" value="الأحد"> الأحد</label>
+      <label class="day-off"><input type="checkbox" value="الاثنين"> الاثنين</label>
+      <label class="day-off"><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
+      <label class="day-off"><input type="checkbox" value="الأربعاء"> الأربعاء</label>
+      <label class="day-off"><input type="checkbox" value="الخميس"> الخميس</label>
+      <label class="day-off"><input type="checkbox" value="الجمعة"> الجمعة</label>
+      <label class="day-off"><input type="checkbox" value="السبت"> السبت</label>
     </div>
 
-    <div class="card">
-      <h3>📋 طلبات مكانك</h3>
-      <table>
-        <thead>
-          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
-        </thead>
-        <tbody id="requestsTable"></tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>🤝 الطلبات المتاحة للتبديل</h3>
-      <table>
-        <thead>
-          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
-        </thead>
-        <tbody id="matchesTable"></tbody>
-      </table>
-    </div>
+    <button id="btnSave" class="save">💾 حفظ</button>
   </div>
 
-  <!-- ✅ Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+  <!-- ✅ البحث -->
+  <div class="card">
+    <h2>🔍 البحث / الفلترة</h2>
+    <input type="text" id="search" placeholder="ابحث عن وقت أو كلمة..." />
+    <select id="filterType">
+      <option value="">الكل</option>
+      <option value="صباحي">صباحي</option>
+      <option value="وسط">وسط</option>
+      <option value="مسائي">مسائي</option>
+    </select>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
-      authDomain: "swap-8005b.firebaseapp.com",
-      databaseURL: "https://swap-8005b-default-rtdb.firebaseio.com",
-      projectId: "swap-8005b",
-      storageBucket: "swap-8005b.appspot.com",
-      messagingSenderId: "464443469235",
-      appId: "1:464443469235:web:4d7904eeb3952402342fc6"
+  <!-- ✅ طلبات التبديل -->
+  <div class="card">
+    <h2>📋 طلبات التبديل</h2>
+    <div id="requestsList"></div>
+  </div>
+
+  <!-- ✅ المفضلة -->
+  <div class="card">
+    <h2>⭐ جداولي المحفوظة</h2>
+    <div id="favoritesList">لا يوجد محفوظات</div>
+  </div>
+
+  <script>
+    // ✅ الشفتات
+    const shifts = {
+      "صباحي": ["٨ص-٥م", "٩ص-٦م"],
+      "وسط": ["١٢م-٩م", "١م-١٠م", "٣م-١٢م"],
+      "مسائي": ["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const requestsRef = ref(db, "requests");
-
-    const loginBox = document.getElementById("loginBox");
-    const mainArea = document.getElementById("mainArea");
-    const userNameSpan = document.getElementById("userName");
-    const btnLogin = document.getElementById("btnLogin");
-    const emailEl = document.getElementById("email");
-    const passEl = document.getElementById("password");
-    const loginError = document.getElementById("loginError");
-
-    const phoneEl = document.getElementById("phone");
-    const genderEl = document.getElementById("gender");
-    const workLocationEl = document.getElementById("workLocation");
     const currentShiftEl = document.getElementById("currentShift");
     const wantedShiftEl = document.getElementById("wantedShift");
-    const btnSubmit = document.getElementById("btnSubmit");
-    const btnDelete = document.getElementById("btnDelete");
-    const requestsTable = document.getElementById("requestsTable");
-    const matchesTable = document.getElementById("matchesTable");
-    const myRequestDiv = document.getElementById("myRequest");
 
-    let allRequests = {};
-    let myRequestKey = null;
-    let wrongMode = false;
-
-    // دوران الزر إذا الإيميل ما ينتهي بـ csmena.com
-    emailEl.addEventListener("input", () => {
-      loginError.classList.remove("show");
-      if (!emailEl.value.toLowerCase().endsWith("@csmena.com")) {
-        btnLogin.classList.add("rotate");
-      } else {
-        btnLogin.classList.remove("rotate");
-      }
-    });
-
-    // تسجيل الدخول
-    btnLogin.addEventListener("click", async () => {
-      const email = emailEl.value.trim();
-      const pass = passEl.value;
-      loginError.classList.remove("show");
-
-      if (!email.toLowerCase().endsWith("@csmena.com")) return;
-
-      try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        wrongMode = false;
-        btnLogin.style.position = "relative";
-        btnLogin.style.left = "0px";
-        btnLogin.style.top = "0px";
-        loginBox.classList.add("hidden");
-        mainArea.classList.remove("hidden");
-      } catch (err) {
-        wrongMode = true;
-        btnLogin.style.position = "absolute";
-        loginError.textContent = "كلمة السر أو الإيميل خاطئ";
-        loginError.classList.add("show");
-      }
-    });
-
-    // زر الهروب
-    btnLogin.addEventListener("mouseover", () => {
-      if (!wrongMode) return;
-      const x = Math.floor(Math.random() * 220) - 110;
-      const y = Math.floor(Math.random() * 120) - 60;
-      btnLogin.style.left = x + "px";
-      btnLogin.style.top = y + "px";
-    });
-
-    // مراقبة الدخول
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loginBox.classList.add("hidden");
-        mainArea.classList.remove("hidden");
-        userNameSpan.textContent = user.displayName || user.email;
-        refreshUI();
-      } else {
-        loginBox.classList.remove("hidden");
-        mainArea.classList.add("hidden");
-        myRequestKey = null;
-        wrongMode = false;
-        btnLogin.classList.remove("rotate");
-        btnLogin.style.position = "relative";
-        btnLogin.style.left = "0px";
-        btnLogin.style.top = "0px";
-        loginError.classList.remove("show");
-      }
-    });
-
-    // تسجيل خروج
-    document.getElementById("btnLogout").addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // متابعة الطلبات
-    onValue(requestsRef, (snap) => {
-      allRequests = snap.val() || {};
-      refreshUI();
-    });
-
-    // إرسال طلب
-    btnSubmit.addEventListener("click", async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      if (myRequestKey) return alert("عندك طلب موجود. احذفه لتضيف جديد.");
-
-      const phone = phoneEl.value.trim();
-      if (!/^[0-9]{9,12}$/.test(phone)) return alert("📞 رقم الهاتف غير صحيح.");
-
-      const phoneTaken = Object.values(allRequests).some(r => r.phone === phone);
-      if (phoneTaken) return alert("⚠️ هذا الرقم مسجل مسبقاً.");
-
-      await push(requestsRef, {
-        userId: user.uid,
-        email: user.email,
-        workLocation: workLocationEl.value,
-        phone,
-        gender: genderEl.value,
-        currentShift: currentShiftEl.value,
-        wantedShift: wantedShiftEl.value,
-        createdAt: Date.now()
+    // بناء القائمة
+    for (let group in shifts) {
+      const optGroup1 = document.createElement("optgroup");
+      optGroup1.label = group;
+      shifts[group].forEach(s => {
+        let opt = document.createElement("option");
+        opt.value = s; opt.textContent = s;
+        optGroup1.appendChild(opt);
       });
-    });
+      currentShiftEl.appendChild(optGroup1);
 
-    // حذف طلبي
-    btnDelete.addEventListener("click", async () => {
-      if (!myRequestKey) return;
-      await remove(ref(db, "requests/" + myRequestKey));
-      myRequestKey = null;
-    });
-
-    // تحديث العرض
-    function refreshUI(){
-      const user = auth.currentUser;
-      if (!user) return;
-      const userLoc = workLocationEl.value;
-      requestsTable.innerHTML = "";
-      matchesTable.innerHTML = "";
-      myRequestKey = null;
-
-      Object.entries(allRequests).forEach(([key, r]) => {
-        if (r.userId === user.uid) myRequestKey = key;
-      });
-
-      Object.values(allRequests)
-        .filter(r => r.workLocation === userLoc)
-        .forEach(r => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td>`;
-          requestsTable.appendChild(tr);
-        });
-
-      const seen = new Set();
-      Object.entries(allRequests).forEach(([k1, r1]) => {
-        if (r1.workLocation !== userLoc) return;
-        const match = Object.entries(allRequests).find(([k2, r2]) =>
-          k1 !== k2 &&
-          r2.workLocation === r1.workLocation &&
-          r2.currentShift === r1.wantedShift &&
-          r2.wantedShift === r1.currentShift
-        );
-        if (match && !seen.has(k1) && !seen.has(match[0])) {
-          seen.add(k1); seen.add(match[0]);
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${r1.workLocation}</td><td>${r1.phone} ⇄ ${match[1].phone}</td><td>${r1.gender}</td><td>${r1.currentShift}</td><td>${r1.wantedShift}</td>`;
-          matchesTable.appendChild(tr);
-        }
-      });
-
-      if (myRequestKey) {
-        const my = allRequests[myRequestKey];
-        myRequestDiv.classList.remove("hidden");
-        myRequestDiv.innerHTML = `📌 طلبك الحالي: ${my.currentShift} ➝ ${my.wantedShift} (${my.phone})`;
-        btnDelete.classList.remove("hidden");
-        btnSubmit.disabled = true;
-        phoneEl.value = my.phone;
-        genderEl.value = my.gender;
-        workLocationEl.value = my.workLocation;
-        currentShiftEl.value = my.currentShift;
-        wantedShiftEl.value = my.wantedShift;
-      } else {
-        myRequestDiv.classList.add("hidden");
-        btnDelete.classList.add("hidden");
-        btnSubmit.disabled = false;
-        phoneEl.value = "";
-      }
+      const optGroup2 = optGroup1.cloneNode(true);
+      wantedShiftEl.appendChild(optGroup2);
     }
 
-    workLocationEl.addEventListener("change", refreshUI);
+    // بيانات محلية (بدل قاعدة بيانات للتبسيط)
+    let myShift = null;
+    let requests = [];
+    let favorites = [];
+
+    const requestsList = document.getElementById("requestsList");
+    const favoritesList = document.getElementById("favoritesList");
+    const myShiftDiv = document.getElementById("myShift");
+    const btnClearMyShift = document.getElementById("btnClearMyShift");
+
+    function render() {
+      // جدولي الحالي
+      if (myShift) {
+        myShiftDiv.textContent = `📌 ${myShift.currentShift} ➝ ${myShift.wantedShift} | عطلة: ${myShift.daysOff.join(", ") || "لا"}`;
+        btnClearMyShift.classList.remove("hidden");
+      } else {
+        myShiftDiv.textContent = "لا يوجد جدول بعد";
+        btnClearMyShift.classList.add("hidden");
+      }
+
+      // الطلبات
+      requestsList.innerHTML = "";
+      let filter = document.getElementById("filterType").value;
+      let search = document.getElementById("search").value;
+      requests
+        .filter(r => (!filter || r.type === filter) &&
+                     (!search || r.currentShift.includes(search) || r.wantedShift.includes(search)))
+        .forEach((r,i) => {
+          let div = document.createElement("div");
+          div.className="item";
+          div.innerHTML = `${r.currentShift} ➝ ${r.wantedShift} | ${r.gender} | ${r.phone}
+            <button class="save" onclick="saveFav(${i})">⭐</button>`;
+          requestsList.appendChild(div);
+        });
+
+      if (requestsList.innerHTML==="") requestsList.textContent="لا يوجد طلبات";
+
+      // المحفوظة
+      favoritesList.innerHTML="";
+      favorites.forEach((f,i)=>{
+        let div=document.createElement("div");
+        div.className="item";
+        div.innerHTML=`${f.currentShift} ➝ ${f.wantedShift} | ${f.phone}
+          <button class="remove" onclick="removeFav(${i})">❌</button>`;
+        favoritesList.appendChild(div);
+      });
+      if (favorites.length===0) favoritesList.textContent="لا يوجد محفوظات";
+    }
+
+    // حفظ جدول جديد
+    document.getElementById("btnSave").onclick = () => {
+      let cur = currentShiftEl.value, want = wantedShiftEl.value;
+      if (cur===want) { alert("❌ لا يمكن اختيار نفس الجدول"); return; }
+      let daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
+      myShift = {
+        work: document.getElementById("workLocation").value,
+        phone: document.getElementById("phone").value,
+        gender: document.getElementById("gender").value,
+        currentShift: cur, wantedShift: want, daysOff,
+        type: Object.keys(shifts).find(k=>shifts[k].includes(cur)) || ""
+      };
+      requests.push(myShift);
+      render();
+    };
+
+    // حذف جدولي
+    btnClearMyShift.onclick=()=>{ myShift=null; render(); };
+
+    // إدارة المفضلة
+    window.saveFav=(i)=>{ favorites.push(requests[i]); render(); };
+    window.removeFav=(i)=>{ favorites.splice(i,1); render(); };
+
+    // البحث والفلتر
+    document.getElementById("search").oninput=render;
+    document.getElementById("filterType").onchange=render;
+
+    render();
   </script>
 </body>
 </html>
