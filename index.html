@@ -42,6 +42,9 @@
       transition: all .3s ease;
     }
     #loginError.show { opacity: 1; transform: translateY(0); }
+    .requestBox {border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#fafafa;text-align:right;}
+    .requestBox strong {color:#2980B9;}
+    .secondLine {font-size:13px;color:#555;margin-top:5px;}
   </style>
 </head>
 <body>
@@ -134,17 +137,21 @@
       <!-- ✅ الأقسام الجانبية -->
       <div id="allSection" class="card hidden">
         <h3>📋 كل الطلبات</h3>
-        <table><thead><tr><th>الموظف</th><th>جدوله</th></tr></thead><tbody id="allRequests"></tbody></table>
+        <label>📍 فلترة بمكان العمل</label>
+        <select id="filterLocation"><option value="">الكل</option><option>من البيت</option><option>من الشركة</option></select>
+        <label>📌 فلترة بالشفت المطلوب</label>
+        <select id="filterShift"><option value="">الكل</option></select>
+        <div id="allRequests"></div>
       </div>
 
       <div id="savedSection" class="card hidden">
         <h3>📦 المحفوظة</h3>
-        <table><thead><tr><th>الموظف</th><th>جدوله</th></tr></thead><tbody id="savedRequests"></tbody></table>
+        <div id="savedRequests"></div>
       </div>
 
       <div id="mineSection" class="card hidden">
         <h3>📝 طلباتي</h3>
-        <table><thead><tr><th>جدولي</th></tr></thead><tbody id="myRequests"></tbody></table>
+        <div id="myRequests"></div>
       </div>
     </div>
   </div>
@@ -153,7 +160,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
@@ -168,7 +175,6 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
     const sidebar=document.getElementById("sidebar");
@@ -185,9 +191,13 @@
     const btnSubmit=document.getElementById("btnSubmit");
     const matchesEl=document.getElementById("matches");
     const successMsg=document.getElementById("successMsg");
+
     const allRequestsEl=document.getElementById("allRequests");
     const savedRequestsEl=document.getElementById("savedRequests");
     const myRequestsEl=document.getElementById("myRequests");
+
+    const filterLocation=document.getElementById("filterLocation");
+    const filterShift=document.getElementById("filterShift");
 
     const allSection=document.getElementById("allSection");
     const savedSection=document.getElementById("savedSection");
@@ -201,13 +211,10 @@
       "٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص",
       "٩م-٦ص","١٠م-٧ص","١١م-٨ص"
     ];
-
-    // تعبئة الشفتات
     shifts.forEach(s=>{
-      let o1=document.createElement("option");
-      o1.value=s;o1.textContent=s;baseShiftEl.appendChild(o1);
-      let o2=document.createElement("option");
-      o2.value=s;o2.textContent=s;wantedShiftEl.appendChild(o2);
+      let o1=document.createElement("option");o1.value=s;o1.textContent=s;baseShiftEl.appendChild(o1);
+      let o2=document.createElement("option");o2.value=s;o2.textContent=s;wantedShiftEl.appendChild(o2);
+      let o3=document.createElement("option");o3.value=s;o3.textContent=s;filterShift.appendChild(o3);
     });
     document.querySelectorAll("#daysCustom select").forEach(sel=>{
       let opt=document.createElement("option");opt.value="";opt.textContent="--";sel.appendChild(opt);
@@ -227,7 +234,6 @@
       }
     });
 
-    // ✅ مراقبة المستخدم
     onAuthStateChanged(auth, (user) => {
       if (user) {
         loginBox.classList.add("hidden");
@@ -243,13 +249,17 @@
       }
     });
 
-    // ✅ تسجيل خروج
     btnLogout.addEventListener("click", () => signOut(auth));
     btnLogoutTop.addEventListener("click", () => signOut(auth));
 
     // ✅ إرسال جدولي
     btnSubmit.addEventListener("click", async () => {
       const user=auth.currentUser;if(!user) return;
+      const phone=document.getElementById("phone").value.trim();
+      if(!/^[0-9]{9,12}$/.test(phone)){alert("📞 أدخل رقم هاتف صحيح");return;}
+      const workLocation=document.getElementById("workLocation").value;
+      const gender=document.getElementById("gender").value;
+
       const daysCustom={};
       document.querySelectorAll("#daysCustom select").forEach(s=>{
         if(s.value) daysCustom[s.dataset.day]=s.value;
@@ -258,6 +268,7 @@
 
       await push(ref(db,"requests"),{
         userId:user.uid,
+        phone,workLocation,gender,
         baseShift:baseShiftEl.value,
         wantedShift:wantedShiftEl.value,
         daysCustom,
@@ -278,43 +289,61 @@
       });
     }
 
+    function renderBox(r,key,withDelete=false){
+      let html=`
+        <div class="requestBox">
+          <strong>📞 ${r.phone}</strong> | ${r.gender} | حالي: ${r.baseShift} | مطلوب: ${r.wantedShift}<br>
+          <div class="secondLine">`;
+      ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"].forEach(d=>{
+        if(r.daysCustom && r.daysCustom[d]) html+=`${d}: ${r.daysCustom[d]} | `;
+        else if(r.daysOff && r.daysOff.includes(d)) html+=`${d}: عطلة | `;
+        else html+=`${d}: ${r.baseShift} | `;
+      });
+      html+=`</div>`;
+      if(withDelete) html+=`<button onclick="deleteRequest('${key}')" class="danger">🗑️ حذف</button>`;
+      html+=`</div>`;
+      return html;
+    }
+
+    window.deleteRequest=async function(key){
+      await remove(ref(db,"requests/"+key));
+    }
+
     // ✅ المطابقات
     function renderMatches(){
       const user=auth.currentUser;if(!user) return;
       matchesEl.innerHTML="";
-      let myReq=Object.values(allRequests).find(r=>r.userId===user.uid);
-      if(!myReq) return;
-      Object.values(allRequests).forEach(r=>{
+      let myReqKey=Object.keys(allRequests).find(k=>allRequests[k].userId===user.uid);
+      if(!myReqKey) return;
+      let myReq=allRequests[myReqKey];
+      Object.entries(allRequests).forEach(([k,r])=>{
         if(r.userId!==user.uid && r.baseShift===myReq.wantedShift && r.wantedShift===myReq.baseShift){
-          matchesEl.innerHTML+=`
-            <div>
-              أنا (${myReq.baseShift} ➝ ${myReq.wantedShift})
-              ⇄
-              ${r.baseShift} ➝ ${r.wantedShift}
-            </div>`;
+          matchesEl.innerHTML+=renderBox(r,k);
         }
       });
     }
 
-    // ✅ كل الطلبات
+    // ✅ كل الطلبات مع فلترة
     function renderAll(){
       allRequestsEl.innerHTML="";
-      Object.values(allRequests).forEach(r=>{
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td>${r.userId}</td><td>${r.baseShift} ➝ ${r.wantedShift}</td>`;
-        allRequestsEl.appendChild(tr);
+      const loc=filterLocation.value;
+      const sh=filterShift.value;
+      Object.entries(allRequests).forEach(([k,r])=>{
+        if(loc && r.workLocation!==loc) return;
+        if(sh && r.wantedShift!==sh) return;
+        allRequestsEl.innerHTML+=renderBox(r,k);
       });
     }
+    filterLocation.addEventListener("change",renderAll);
+    filterShift.addEventListener("change",renderAll);
 
     // ✅ طلباتي
     function renderMine(){
       const user=auth.currentUser;if(!user) return;
       myRequestsEl.innerHTML="";
-      Object.values(allRequests).forEach(r=>{
+      Object.entries(allRequests).forEach(([k,r])=>{
         if(r.userId===user.uid){
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.baseShift} ➝ ${r.wantedShift}</td>`;
-          myRequestsEl.appendChild(tr);
+          myRequestsEl.innerHTML+=renderBox(r,k,true);
         }
       });
     }
