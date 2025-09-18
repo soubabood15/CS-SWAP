@@ -6,109 +6,109 @@
   <title>📅 نظام تبديل الشفتات</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body {font-family:'Tajawal',sans-serif;max-width:950px;margin:0 auto;padding:15px;background:#f0f2f5;}
-    h1 {text-align:center;margin:20px 0;}
-    .card {background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin-bottom:20px;}
-    label {display:block;margin:10px 0 5px;font-weight:600;}
-    input,select,button {width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:15px;}
-    button {cursor:pointer;font-weight:600;}
-    .primary {background:#2980B9;color:#fff;border:none;}
-    .danger {background:#e74c3c;color:#fff;border:none;}
-    .save {background:#27ae60;color:#fff;}
-    table {width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;display:block;overflow-x:auto;white-space:nowrap;}
-    th,td {border:1px solid #ddd;padding:8px;text-align:center;}
+    body {font-family:'Tajawal',sans-serif;margin:0;display:flex;background:#f0f2f5;}
+    h1 {text-align:center;}
+    .sidebar {width:220px;background:#2c3e50;color:#fff;min-height:100vh;padding:20px;box-sizing:border-box;}
+    .sidebar button {display:block;width:100%;margin:10px 0;padding:10px;background:#34495e;color:#fff;border:none;cursor:pointer;text-align:right;border-radius:5px;}
+    .sidebar button:hover {background:#1abc9c;}
+    .main {flex:1;padding:20px;}
+    .card {background:#fff;padding:15px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);}
+    table {width:100%;border-collapse:collapse;margin-top:10px;}
+    th,td {border:1px solid #ddd;padding:6px;text-align:center;font-size:14px;}
     th {background:#f9fafc;}
+    input,select,button {padding:8px;margin:5px 0;font-size:14px;}
+    .primary {background:#2980B9;color:#fff;border:none;cursor:pointer;border-radius:4px;}
+    .danger {background:#e74c3c;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .hidden {display:none;}
-    .error {color:#e74c3c;font-weight:600;margin-top:4px;}
+    .week-table {margin-top:10px;}
   </style>
 </head>
 <body>
-  <h1>📅 نظام تبديل الشفتات</h1>
-
-  <!-- ✅ تسجيل دخول -->
-  <div id="loginBox" class="card">
-    <h3>🔑 تسجيل دخول</h3>
-    <input type="email" id="email" placeholder="الإيميل (name@csmena.com)" />
-    <input type="password" id="password" placeholder="كلمة المرور" />
-    <button id="btnLogin" class="primary">دخول</button>
-    <p id="loginError" class="error"></p>
+  <!-- ✅ القائمة الجانبية -->
+  <div class="sidebar hidden" id="sidebar">
+    <button data-section="all">📋 كل الطلبات</button>
+    <button data-section="saved">📦 الطلبات المحفوظة</button>
+    <button data-section="mine">📝 طلباتي</button>
+    <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
   </div>
 
-  <!-- ✅ النظام -->
-  <div id="mainArea" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <h3>👋 أهلاً <span id="userName"></span></h3>
-        <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
+  <!-- ✅ المحتوى الرئيسي -->
+  <div class="main">
+    <h1>📅 نظام تبديل الشفتات</h1>
+
+    <!-- ✅ تسجيل دخول -->
+    <div id="loginBox" class="card">
+      <h3>🔑 تسجيل دخول</h3>
+      <input type="email" id="email" placeholder="الإيميل (name@csmena.com)" />
+      <input type="password" id="password" placeholder="كلمة المرور" />
+      <button id="btnLogin" class="primary">دخول</button>
+      <p id="loginError" style="color:red"></p>
+    </div>
+
+    <!-- ✅ بعد الدخول -->
+    <div id="mainArea" class="hidden">
+      <!-- إدخال جدولي -->
+      <div class="card">
+        <h3>📝 تعبئة جدولي</h3>
+        <label>📍 مكان العمل</label>
+        <select id="workLocation"><option>من البيت</option><option>من الشركة</option></select>
+
+        <label>📞 رقم الهاتف</label>
+        <input type="text" id="phone" placeholder="0551234567" />
+
+        <label>⚧ الجنس</label>
+        <select id="gender"><option>ذكر</option><option>أنثى</option></select>
+
+        <label>شفتك الأساسي</label>
+        <select id="baseShift">
+          <option>٨ص-٥م</option><option>٩ص-٦م</option>
+          <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
+          <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
+          <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
+        </select>
+
+        <label>🗓️ تعديل الأيام (استثناءات)</label>
+        <table class="week-table">
+          <tr><th>اليوم</th><th>الدوام</th></tr>
+          <tbody id="daysCustom"></tbody>
+        </table>
+
+        <label>📆 أيام العطلة</label>
+        <div id="daysOff">
+          <label><input type="checkbox" value="الأحد"> الأحد</label>
+          <label><input type="checkbox" value="الاثنين"> الاثنين</label>
+          <label><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
+          <label><input type="checkbox" value="الأربعاء"> الأربعاء</label>
+          <label><input type="checkbox" value="الخميس"> الخميس</label>
+          <label><input type="checkbox" value="الجمعة"> الجمعة</label>
+          <label><input type="checkbox" value="السبت"> السبت</label>
+        </div>
+
+        <button id="btnSubmit" class="primary">📩 إرسال جدولي</button>
       </div>
-    </div>
 
-    <!-- ✅ إرسال الطلب -->
-    <div class="card">
-      <label>📍 مكان العمل</label>
-      <select id="workLocation"><option>من البيت</option><option>من الشركة</option></select>
-
-      <label>📞 رقم الهاتف</label>
-      <input type="text" id="phone" placeholder="0551234567" />
-
-      <label>⚧ الجنس</label>
-      <select id="gender"><option>ذكر</option><option>أنثى</option></select>
-
-      <label>شفتك الحالي</label>
-      <select id="currentShift"></select>
-
-      <label>الشفت المطلوب</label>
-      <select id="wantedShift"></select>
-
-      <label>📆 أيام العطلة</label>
-      <div id="daysOff">
-        <label><input type="checkbox" value="الأحد"> الأحد</label>
-        <label><input type="checkbox" value="الاثنين"> الاثنين</label>
-        <label><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
-        <label><input type="checkbox" value="الأربعاء"> الأربعاء</label>
-        <label><input type="checkbox" value="الخميس"> الخميس</label>
-        <label><input type="checkbox" value="الجمعة"> الجمعة</label>
-        <label><input type="checkbox" value="السبت"> السبت</label>
+      <!-- ✅ الطلبات المطابقة -->
+      <div class="card">
+        <h3>📌 الطلبات المطابقة</h3>
+        <div id="matches"></div>
       </div>
 
-      <label>✏️ تعديل أيام من الجدول</label>
-      <div id="daysChange">
-        <label><input type="checkbox" value="الأحد"> الأحد</label>
-        <label><input type="checkbox" value="الاثنين"> الاثنين</label>
-        <label><input type="checkbox" value="الثلاثاء"> الثلاثاء</label>
-        <label><input type="checkbox" value="الأربعاء"> الأربعاء</label>
-        <label><input type="checkbox" value="الخميس"> الخميس</label>
-        <label><input type="checkbox" value="الجمعة"> الجمعة</label>
-        <label><input type="checkbox" value="السبت"> السبت</label>
+      <!-- ✅ بقية الأقسام -->
+      <div id="allSection" class="card hidden">
+        <h3>📋 كل الطلبات</h3>
+        <input type="text" id="search" placeholder="🔍 بحث..." />
+        <table><thead><tr><th>الموظف</th><th>جدوله</th><th>📌</th></tr></thead><tbody id="allRequests"></tbody></table>
       </div>
 
-      <button id="btnSubmit" class="primary">📩 إرسال جدولي</button>
-      <button id="btnMyRequests" class="save">📋 طلباتي</button>
-    </div>
+      <div id="savedSection" class="card hidden">
+        <h3>📦 الطلبات المحفوظة</h3>
+        <table><thead><tr><th>الموظف</th><th>جدوله</th><th>❌</th></tr></thead><tbody id="savedRequests"></tbody></table>
+      </div>
 
-    <!-- ✅ البحث -->
-    <div class="card">
-      <h3>🔍 البحث / الفلترة</h3>
-      <input type="text" id="search" placeholder="ابحث..." />
-      <select id="filterType"><option value="">الكل</option><option value="صباحي">صباحي</option><option value="وسط">وسط</option><option value="مسائي">مسائي</option></select>
-    </div>
-
-    <!-- ✅ الطلبات العامة -->
-    <div class="card">
-      <h3>🌍 الطلبات العامة</h3>
-      <table><thead><tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>حالي</th><th>مطلوب</th><th>عطلة</th><th>تعديل</th><th>📌</th></tr></thead><tbody id="requestsTable"></tbody></table>
-    </div>
-
-    <!-- ✅ طلباتي -->
-    <div class="card hidden" id="myRequestsCard">
-      <h3>📋 طلباتي</h3>
-      <table><thead><tr><th>من</th><th>⇄</th><th>إلى</th></tr></thead><tbody id="myRequestsTable"></tbody></table>
-    </div>
-
-    <!-- ✅ جداولي المحفوظة -->
-    <div class="card">
-      <h3>📦 جداولي المحفوظة</h3>
-      <table><thead><tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>حالي</th><th>مطلوب</th><th>❌</th></tr></thead><tbody id="savedTable"></tbody></table>
+      <div id="mineSection" class="card hidden">
+        <h3>📝 طلباتي</h3>
+        <table><thead><tr><th>جدولي</th><th>❌</th></tr></thead><tbody id="myRequests"></tbody></table>
+      </div>
     </div>
   </div>
 
@@ -130,135 +130,175 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // عناصر
+    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
+    const sidebar=document.getElementById("sidebar");
     const userNameSpan=document.getElementById("userName");
     const btnLogin=document.getElementById("btnLogin");
     const emailEl=document.getElementById("email");
     const passEl=document.getElementById("password");
     const loginError=document.getElementById("loginError");
     const btnLogout=document.getElementById("btnLogout");
+
+    const workLocationEl=document.getElementById("workLocation");
     const phoneEl=document.getElementById("phone");
     const genderEl=document.getElementById("gender");
-    const workLocationEl=document.getElementById("workLocation");
-    const currentShiftEl=document.getElementById("currentShift");
-    const wantedShiftEl=document.getElementById("wantedShift");
+    const baseShiftEl=document.getElementById("baseShift");
+    const daysCustomEl=document.getElementById("daysCustom");
     const btnSubmit=document.getElementById("btnSubmit");
-    const btnMyRequests=document.getElementById("btnMyRequests");
-    const requestsTable=document.getElementById("requestsTable");
-    const myRequestsCard=document.getElementById("myRequestsCard");
-    const myRequestsTable=document.getElementById("myRequestsTable");
-    const savedTable=document.getElementById("savedTable");
+    const matchesEl=document.getElementById("matches");
 
-    let requestsRef, savedRef;
+    const allRequestsEl=document.getElementById("allRequests");
+    const savedRequestsEl=document.getElementById("savedRequests");
+    const myRequestsEl=document.getElementById("myRequests");
+
+    const allSection=document.getElementById("allSection");
+    const savedSection=document.getElementById("savedSection");
+    const mineSection=document.getElementById("mineSection");
+
     let allRequests={};
 
-    // الشفتات
-    const shifts={
-      "صباحي":["٨ص-٥م","٩ص-٦م"],
-      "وسط":["١٢م-٩م","١م-١٠م","٣م-١٢م"],
-      "مسائي":["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
-    };
-    for(let g in shifts){
-      let og=document.createElement("optgroup");og.label=g;
-      shifts[g].forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;og.appendChild(o)});
-      currentShiftEl.appendChild(og);
-      wantedShiftEl.appendChild(og.cloneNode(true));
-    }
+    // بناء جدول تعديل الأيام
+    const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    days.forEach(d=>{
+      const row=document.createElement("tr");
+      row.innerHTML=`<td>${d}</td>
+        <td>
+          <select data-day="${d}">
+            <option value="">-- نفس الأساسي --</option>
+            <option>٨ص-٥م</option><option>٩ص-٦م</option>
+            <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
+            <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
+            <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
+          </select>
+        </td>`;
+      daysCustomEl.appendChild(row);
+    });
 
     // تسجيل الدخول
-    btnLogin.addEventListener("click", async () => {
-      try {
-        await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);
-      } catch(e) { loginError.textContent="❌ الإيميل أو كلمة المرور خاطئة"; }
+    btnLogin.addEventListener("click",async()=>{
+      try{await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);}
+      catch(e){loginError.textContent="❌ الإيميل أو كلمة المرور خاطئة";}
     });
 
     onAuthStateChanged(auth,(user)=>{
-      if(user){
-        loginBox.classList.add("hidden"); mainArea.classList.remove("hidden");
-        userNameSpan.textContent=user.email;
-        requestsRef=ref(db,"requests");
-        savedRef=ref(db,"saved/"+user.uid);
-        loadData();
-      }else{loginBox.classList.remove("hidden"); mainArea.classList.add("hidden");}
+      if(user){loginBox.classList.add("hidden");mainArea.classList.remove("hidden");sidebar.classList.remove("hidden");loadData();}
+      else{loginBox.classList.remove("hidden");mainArea.classList.add("hidden");sidebar.classList.add("hidden");}
     });
 
     btnLogout.addEventListener("click",()=>signOut(auth));
 
     // إرسال جدولي
     btnSubmit.addEventListener("click",async()=>{
-      const user=auth.currentUser; if(!user) return;
-      const cur=currentShiftEl.value, want=wantedShiftEl.value;
-      if(cur===want) return alert("❌ لا يمكن اختيار نفس الجدول");
-      const daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
-      const daysChange=[...document.querySelectorAll("#daysChange input:checked")].map(c=>c.value);
-      await push(requestsRef,{
-        userId:user.uid,workLocation:workLocationEl.value,phone:phoneEl.value,gender:genderEl.value,
-        currentShift:cur,wantedShift:want,daysOff,daysChange,createdAt:Date.now()
-      });
-    });
-
-    // حفظ جدول
-    async function saveSchedule(key,data){
-      const user=auth.currentUser; if(!user) return;
-      await set(ref(db,"saved/"+user.uid+"/"+key),data);
-      await remove(ref(db,"requests/"+key));
-    }
-
-    // حذف محفوظ
-    async function deleteSaved(key){
-      const user=auth.currentUser; if(!user) return;
-      await remove(ref(db,"saved/"+user.uid+"/"+key));
-    }
-
-    // طلباتي
-    btnMyRequests.addEventListener("click",()=>{
-      myRequestsCard.classList.toggle("hidden");
-      renderMyRequests();
-    });
-
-    function renderMyRequests(){
       const user=auth.currentUser;if(!user) return;
-      myRequestsTable.innerHTML="";
-      Object.entries(allRequests).forEach(([key,r])=>{
-        if(r.userId!==user.uid && r.wantedShift===currentShiftEl.value){
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.phone}</td><td>⇄</td><td>${r.currentShift}</td>`;
-          myRequestsTable.appendChild(tr);
-        }
+      const daysCustom={};
+      document.querySelectorAll("#daysCustom select").forEach(s=>{
+        if(s.value) daysCustom[s.dataset.day]=s.value;
       });
+      const daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
+      await push(ref(db,"requests"),{
+        userId:user.uid,
+        workLocation:workLocationEl.value,
+        phone:phoneEl.value,
+        gender:genderEl.value,
+        baseShift:baseShiftEl.value,
+        daysCustom,
+        daysOff
+      });
+    });
+
+    // عرض جدول أسبوعي
+    function renderSchedule(r){
+      let html="<table class='week-table'><tr>";
+      days.forEach(d=>html+=`<th>${d}</th>`);html+="</tr><tr>";
+      days.forEach(d=>{
+        let val=r.daysCustom?.[d]||r.baseShift;
+        if(r.daysOff?.includes(d)) val="عطلة";
+        html+=`<td>${val}</td>`;
+      });
+      html+="</tr></table>";
+      return html;
     }
 
     // تحميل البيانات
     function loadData(){
-      onValue(requestsRef,(snap)=>{
+      onValue(ref(db,"requests"),(snap)=>{
         allRequests=snap.val()||{};
-        requestsTable.innerHTML="";
-        Object.entries(allRequests).forEach(([key,r])=>{
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td>
-          <td>${r.currentShift}</td><td>${r.wantedShift}</td>
-          <td>${(r.daysOff||[]).join(",")||"-"}</td>
-          <td>${(r.daysChange||[]).join(",")||"-"}</td>
-          <td><button class="save">حفظ</button></td>`;
-          tr.querySelector("button").onclick=()=>saveSchedule(key,r);
-          requestsTable.appendChild(tr);
-        });
+        renderAll(); renderMine(); renderMatches(); renderSaved();
       });
+    }
 
-      onValue(savedRef,(snap)=>{
+    // كل الطلبات
+    function renderAll(){
+      allRequestsEl.innerHTML="";
+      Object.entries(allRequests).forEach(([key,r])=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${r.phone}</td><td>${renderSchedule(r)}</td><td><button class="primary">📌</button></td>`;
+        tr.querySelector("button").onclick=()=>saveRequest(key,r);
+        allRequestsEl.appendChild(tr);
+      });
+    }
+
+    // طلباتي
+    function renderMine(){
+      const user=auth.currentUser;if(!user) return;
+      myRequestsEl.innerHTML="";
+      Object.entries(allRequests).forEach(([key,r])=>{
+        if(r.userId===user.uid){
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td>${renderSchedule(r)}</td><td><button class="danger">❌</button></td>`;
+          tr.querySelector("button").onclick=()=>remove(ref(db,"requests/"+key));
+          myRequestsEl.appendChild(tr);
+        }
+      });
+    }
+
+    // المطابقات
+    function renderMatches(){
+      const user=auth.currentUser;if(!user) return;
+      matchesEl.innerHTML="";
+      let myReq=Object.values(allRequests).find(r=>r.userId===user.uid);
+      if(!myReq) return;
+      Object.values(allRequests).forEach(r=>{
+        if(r.userId!==user.uid && r.baseShift===myReq.baseShift){
+          matchesEl.innerHTML+=`<div>أنا (${myReq.baseShift}) ⇄ ${r.phone} (${r.baseShift})</div>`;
+        }
+      });
+    }
+
+    // المحفوظة
+    function renderSaved(){
+      const user=auth.currentUser;if(!user) return;
+      onValue(ref(db,"saved/"+user.uid),(snap)=>{
         const data=snap.val()||{};
-        savedTable.innerHTML="";
+        savedRequestsEl.innerHTML="";
         Object.entries(data).forEach(([key,r])=>{
           const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td>
-          <td><button class="danger">❌</button></td>`;
-          tr.querySelector("button").onclick=()=>deleteSaved(key);
-          savedTable.appendChild(tr);
+          tr.innerHTML=`<td>${r.phone}</td><td>${renderSchedule(r)}</td><td><button class="danger">❌</button></td>`;
+          tr.querySelector("button").onclick=()=>remove(ref(db,"saved/"+user.uid+"/"+key));
+          savedRequestsEl.appendChild(tr);
         });
       });
     }
+
+    // حفظ طلب
+    function saveRequest(key,r){
+      const user=auth.currentUser;if(!user) return;
+      set(ref(db,"saved/"+user.uid+"/"+key),r);
+    }
+
+    // التبديل بين الأقسام
+    document.querySelectorAll(".sidebar button[data-section]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        allSection.classList.add("hidden");
+        savedSection.classList.add("hidden");
+        mineSection.classList.add("hidden");
+        if(btn.dataset.section==="all") allSection.classList.remove("hidden");
+        if(btn.dataset.section==="saved") savedSection.classList.remove("hidden");
+        if(btn.dataset.section==="mine") mineSection.classList.remove("hidden");
+      });
+    });
   </script>
 </body>
 </html>
