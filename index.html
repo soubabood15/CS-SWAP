@@ -24,13 +24,31 @@
     .hidden {display:none;}
     .week-table select {width:100%;}
     #successMsg {display:none; background:#2ecc71; color:#fff; padding:10px; margin-bottom:10px; border-radius:5px;}
+    /* ✅ أنيميشن تسجيل الدخول */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-8px); }
+      80% { transform: translateX(8px); }
+      100% { transform: translateX(0); }
+    }
+    .shake { animation: shake 0.4s; }
+    #loginError {
+      color: #e74c3c;
+      font-weight: bold;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: all .3s ease;
+    }
+    #loginError.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
   <!-- ✅ القائمة الجانبية -->
   <div class="sidebar hidden" id="sidebar">
     <button data-section="all">📋 كل الطلبات</button>
-    <button data-section="saved">📦 الطلبات المحفوظة</button>
+    <button data-section="saved">📦 المحفوظة</button>
     <button data-section="mine">📝 طلباتي</button>
     <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
   </div>
@@ -45,7 +63,7 @@
       <input type="email" id="email" placeholder="الإيميل (name@csmena.com)" />
       <input type="password" id="password" placeholder="كلمة المرور" />
       <button id="btnLogin" class="primary">دخول</button>
-      <p id="loginError" style="color:red"></p>
+      <p id="loginError"></p>
     </div>
 
     <!-- ✅ بعد الدخول -->
@@ -70,35 +88,26 @@
         <select id="gender"><option>ذكر</option><option>أنثى</option></select>
 
         <label>شفتك الأساسي</label>
-        <select id="baseShift">
-          <option>٨ص-٥م</option><option>٩ص-٦م</option>
-          <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
-          <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
-          <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
-        </select>
+        <select id="baseShift"></select>
 
         <label>📌 الجدول المطلوب</label>
-        <select id="wantedShift">
-          <option>٨ص-٥م</option><option>٩ص-٦م</option>
-          <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
-          <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
-          <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
-        </select>
+        <select id="wantedShift"></select>
 
-        <label>🗓️ الاستثناءات</label>
+        <!-- ✅ الاستثناءات -->
+        <label style="margin-top:15px;">🗓️ الاستثناءات</label>
         <table class="week-table">
           <tr>
             <th>الأحد</th><th>الاثنين</th><th>الثلاثاء</th>
             <th>الأربعاء</th><th>الخميس</th><th>الجمعة</th><th>السبت</th>
           </tr>
           <tr id="daysCustom">
-            <td><select data-day="الأحد"><option value="">--</option></select></td>
-            <td><select data-day="الاثنين"><option value="">--</option></select></td>
-            <td><select data-day="الثلاثاء"><option value="">--</option></select></td>
-            <td><select data-day="الأربعاء"><option value="">--</option></select></td>
-            <td><select data-day="الخميس"><option value="">--</option></select></td>
-            <td><select data-day="الجمعة"><option value="">--</option></select></td>
-            <td><select data-day="السبت"><option value="">--</option></select></td>
+            <td><select data-day="الأحد"></select></td>
+            <td><select data-day="الاثنين"></select></td>
+            <td><select data-day="الثلاثاء"></select></td>
+            <td><select data-day="الأربعاء"></select></td>
+            <td><select data-day="الخميس"></select></td>
+            <td><select data-day="الجمعة"></select></td>
+            <td><select data-day="السبت"></select></td>
           </tr>
         </table>
 
@@ -120,6 +129,22 @@
       <div class="card">
         <h3>📌 الطلبات المطابقة</h3>
         <div id="matches"></div>
+      </div>
+
+      <!-- ✅ الأقسام الجانبية -->
+      <div id="allSection" class="card hidden">
+        <h3>📋 كل الطلبات</h3>
+        <table><thead><tr><th>الموظف</th><th>جدوله</th></tr></thead><tbody id="allRequests"></tbody></table>
+      </div>
+
+      <div id="savedSection" class="card hidden">
+        <h3>📦 المحفوظة</h3>
+        <table><thead><tr><th>الموظف</th><th>جدوله</th></tr></thead><tbody id="savedRequests"></tbody></table>
+      </div>
+
+      <div id="mineSection" class="card hidden">
+        <h3>📝 طلباتي</h3>
+        <table><thead><tr><th>جدولي</th></tr></thead><tbody id="myRequests"></tbody></table>
       </div>
     </div>
   </div>
@@ -143,6 +168,7 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
     const sidebar=document.getElementById("sidebar");
@@ -154,24 +180,50 @@
     const btnLogoutTop=document.getElementById("btnLogoutTop");
     const currentUserEmail=document.getElementById("currentUserEmail");
 
-    const workLocationEl=document.getElementById("workLocation");
-    const phoneEl=document.getElementById("phone");
-    const genderEl=document.getElementById("gender");
     const baseShiftEl=document.getElementById("baseShift");
     const wantedShiftEl=document.getElementById("wantedShift");
     const btnSubmit=document.getElementById("btnSubmit");
     const matchesEl=document.getElementById("matches");
     const successMsg=document.getElementById("successMsg");
+    const allRequestsEl=document.getElementById("allRequests");
+    const savedRequestsEl=document.getElementById("savedRequests");
+    const myRequestsEl=document.getElementById("myRequests");
+
+    const allSection=document.getElementById("allSection");
+    const savedSection=document.getElementById("savedSection");
+    const mineSection=document.getElementById("mineSection");
 
     let allRequests={};
 
-    // ✅ تسجيل الدخول
+    // ✅ الشفتات
+    const shifts = [
+      "٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م",
+      "٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص",
+      "٩م-٦ص","١٠م-٧ص","١١م-٨ص"
+    ];
+
+    // تعبئة الشفتات
+    shifts.forEach(s=>{
+      let o1=document.createElement("option");
+      o1.value=s;o1.textContent=s;baseShiftEl.appendChild(o1);
+      let o2=document.createElement("option");
+      o2.value=s;o2.textContent=s;wantedShiftEl.appendChild(o2);
+    });
+    document.querySelectorAll("#daysCustom select").forEach(sel=>{
+      let opt=document.createElement("option");opt.value="";opt.textContent="--";sel.appendChild(opt);
+      shifts.forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);});
+    });
+
+    // ✅ تسجيل الدخول مع أنيميشن
     btnLogin.addEventListener("click", async () => {
       try {
         await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
-        loginError.textContent = "";
+        loginError.classList.remove("show");
       } catch (e) {
         loginError.textContent = "❌ الإيميل أو كلمة المرور خاطئة";
+        loginError.classList.add("show");
+        btnLogin.classList.add("shake");
+        setTimeout(()=>btnLogin.classList.remove("shake"),500);
       }
     });
 
@@ -206,9 +258,6 @@
 
       await push(ref(db,"requests"),{
         userId:user.uid,
-        workLocation:workLocationEl.value,
-        phone:phoneEl.value,
-        gender:genderEl.value,
         baseShift:baseShiftEl.value,
         wantedShift:wantedShiftEl.value,
         daysCustom,
@@ -219,11 +268,13 @@
       setTimeout(()=>successMsg.style.display="none",3000);
     });
 
-    // ✅ تحميل البيانات (مؤقت للمطابقات)
+    // ✅ تحميل البيانات
     function loadData(){
       onValue(ref(db,"requests"),(snap)=>{
         allRequests=snap.val()||{};
         renderMatches();
+        renderAll();
+        renderMine();
       });
     }
 
@@ -239,11 +290,44 @@
             <div>
               أنا (${myReq.baseShift} ➝ ${myReq.wantedShift})
               ⇄
-              ${r.phone} (${r.baseShift} ➝ ${r.wantedShift})
+              ${r.baseShift} ➝ ${r.wantedShift}
             </div>`;
         }
       });
     }
+
+    // ✅ كل الطلبات
+    function renderAll(){
+      allRequestsEl.innerHTML="";
+      Object.values(allRequests).forEach(r=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${r.userId}</td><td>${r.baseShift} ➝ ${r.wantedShift}</td>`;
+        allRequestsEl.appendChild(tr);
+      });
+    }
+
+    // ✅ طلباتي
+    function renderMine(){
+      const user=auth.currentUser;if(!user) return;
+      myRequestsEl.innerHTML="";
+      Object.values(allRequests).forEach(r=>{
+        if(r.userId===user.uid){
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td>${r.baseShift} ➝ ${r.wantedShift}</td>`;
+          myRequestsEl.appendChild(tr);
+        }
+      });
+    }
+
+    // ✅ تبديل الأقسام
+    document.querySelectorAll(".sidebar button[data-section]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        allSection.classList.add("hidden");
+        savedSection.classList.add("hidden");
+        mineSection.classList.add("hidden");
+        document.getElementById(btn.dataset.section+"Section").classList.remove("hidden");
+      });
+    });
   </script>
 </body>
 </html>
