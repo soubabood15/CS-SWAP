@@ -13,16 +13,15 @@
       background: #f0f2f5;
       color: #333;
     }
-    h1 { text-align: center; margin-bottom: 25px; animation: fadeIn 1s ease-in; }
+    h1 { text-align: center; margin-bottom: 25px; }
     .card {
       background: #fff;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,.08);
       margin-bottom: 20px;
-      animation: fadeInUp 0.8s ease-in-out;
+      position: relative;
     }
-    label { display: block; margin: 10px 0 5px; font-weight: 600; }
     input, select, button {
       width: 100%;
       padding: 10px;
@@ -30,18 +29,18 @@
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 15px;
-      transition: all 0.3s;
     }
-    input:focus, select:focus {
-      border-color: #2980B9;
-      box-shadow: 0 0 6px rgba(41,128,185,0.3);
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      position: relative;
     }
-    button { cursor: pointer; font-weight: 600; }
-    button.primary { background:#2980B9; color:#fff; border: none; transition: all 0.3s; }
-    button.primary:hover { background:#1f6390; transform: scale(1.02); }
+    button.primary { background:#2980B9; color:#fff; border: none; }
+    button.primary:hover { background:#1f6390; }
     button.danger { background: #e74c3c; color: #fff; border: none; }
     button.danger:hover { background: #c0392b; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; animation: fadeIn 1s ease-in; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
     th { background: #f9fafc; }
     .hidden { display: none; }
@@ -49,25 +48,9 @@
       padding: 10px;
       background: #fffbe6;
       border: 1px solid #ffe58f;
-      color: #7a6000;
       margin-top: 12px;
       border-radius: 6px;
-      animation: fadeIn 0.5s ease-in;
     }
-    .error {
-      color: #e74c3c;
-      font-weight: 600;
-      margin-top: 8px;
-      opacity: 0;
-      transform: translateY(-5px);
-      transition: all 0.4s ease;
-    }
-    .error.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes fadeInUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   </style>
 </head>
 <body>
@@ -79,7 +62,6 @@
     <input type="email" id="email" placeholder="الإيميل" />
     <input type="password" id="password" placeholder="كلمة المرور" />
     <button id="btnLogin" class="primary">دخول</button>
-    <p id="loginError" class="error hidden"></p>
   </div>
 
   <!-- ✅ منطقة المستخدم -->
@@ -167,8 +149,7 @@
     const loginBox = document.getElementById("loginBox");
     const mainArea = document.getElementById("mainArea");
     const userNameSpan = document.getElementById("userName");
-    const loginError = document.getElementById("loginError");
-    const myRequestDiv = document.getElementById("myRequest");
+    const btnLogin = document.getElementById("btnLogin");
     const phoneEl = document.getElementById("phone");
     const genderEl = document.getElementById("gender");
     const workLocationEl = document.getElementById("workLocation");
@@ -181,18 +162,31 @@
 
     let allRequests = {};
     let myRequestKey = null;
+    let wrongMode = false;
 
     // دخول
-    document.getElementById("btnLogin").addEventListener("click", async () => {
+    btnLogin.addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const pass = document.getElementById("password").value;
-      loginError.classList.remove("show");
       try {
         await signInWithEmailAndPassword(auth, email, pass);
+        wrongMode = false;
+        btnLogin.style.position = "relative";
+        btnLogin.style.left = "0px";
+        btnLogin.style.top = "0px";
       } catch (err) {
-        loginError.textContent = "كلمة السر أو الإيميل خاطئ";
-        loginError.classList.add("show");
+        wrongMode = true;
+        btnLogin.style.position = "absolute";
       }
+    });
+
+    // حركة الزر 😂
+    btnLogin.addEventListener("mouseover", () => {
+      if (!wrongMode) return;
+      const x = Math.floor(Math.random() * 200) - 100;
+      const y = Math.floor(Math.random() * 100) - 50;
+      btnLogin.style.left = `${x}px`;
+      btnLogin.style.top = `${y}px`;
     });
 
     // خروج
