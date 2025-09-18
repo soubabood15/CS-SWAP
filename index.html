@@ -10,24 +10,20 @@
     h1 {text-align:center;margin:20px 0;}
     .card {background:#fff;padding:15px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin-bottom:20px;}
     label {display:block;margin:10px 0 5px;font-weight:600;}
-    input,select,button {width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:15px;transition:.2s;}
-    input:focus,select:focus {border-color:#2980B9;box-shadow:0 0 6px rgba(41,128,185,.3);}
+    input,select,button {width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:6px;font-size:15px;}
     button {cursor:pointer;font-weight:600;position:relative;}
     .primary {background:#2980B9;color:#fff;border:none;}
-    .primary:hover {background:#1f6390;}
     .danger {background:#e74c3c;color:#fff;border:none;}
-    .danger:hover {background:#c0392b;}
     .save {background:#27ae60;color:#fff;}
-    .remove {background:#e74c3c;color:#fff;}
     table {width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;display:block;overflow-x:auto;white-space:nowrap;}
     th,td {border:1px solid #ddd;padding:8px;text-align:center;}
     th {background:#f9fafc;}
     .hidden {display:none;}
     .notice {padding:8px;background:#fffbe6;border:1px solid #ffe58f;margin-top:8px;border-radius:6px;}
-    .error {color:#e74c3c;font-weight:600;margin-top:4px;opacity:0;transform:translateY(-5px);transition:.35s ease;}
-    .error.show {opacity:1;transform:translateY(0);}
     @keyframes rotate {0%{transform:rotate(0deg)}25%{transform:rotate(10deg)}50%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}100%{transform:rotate(0deg)}}
     .rotate {animation:rotate .6s infinite;background:#e74c3c!important;}
+    .error {color:#e74c3c;font-weight:600;margin-top:4px;opacity:0;transform:translateY(-5px);transition:.35s;}
+    .error.show {opacity:1;transform:translateY(0);}
   </style>
 </head>
 <body>
@@ -49,20 +45,22 @@
         <h3>👋 أهلاً <span id="userName"></span></h3>
         <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
       </div>
+    </div>
 
-      <!-- ✅ جدولي الحالي -->
-      <div class="card">
-        <h3>📌 جدولي الحالي</h3>
-        <div id="myShift">لا يوجد جدول بعد</div>
-        <button id="btnClearMyShift" class="danger hidden">❌ حذف</button>
-      </div>
+    <!-- ✅ جدولي الحالي -->
+    <div class="card">
+      <h3>📌 جدولي الحالي</h3>
+      <div id="myShift">لا يوجد جدول</div>
+      <button id="btnClearMyShift" class="danger hidden">❌ حذف جدولي</button>
+    </div>
 
-      <!-- ✅ إضافة طلب -->
+    <!-- ✅ إضافة طلب -->
+    <div class="card">
       <label>📍 مكان العمل</label>
       <select id="workLocation"><option>من البيت</option><option>من الشركة</option></select>
 
       <label>📞 رقم الهاتف</label>
-      <input type="text" id="phone" placeholder="مثال: 0551234567" />
+      <input type="text" id="phone" placeholder="0551234567" />
 
       <label>⚧ الجنس</label>
       <select id="gender"><option>ذكر</option><option>أنثى</option></select>
@@ -84,20 +82,20 @@
         <label><input type="checkbox" value="السبت"> السبت</label>
       </div>
 
-      <button id="btnSave" class="primary">💾 حفظ</button>
+      <button id="btnSubmit" class="primary">📩 إرسال الطلب</button>
       <button id="btnDelete" class="danger hidden">🗑️ حذف طلبي</button>
     </div>
 
     <!-- ✅ البحث -->
     <div class="card">
       <h3>🔍 البحث / الفلترة</h3>
-      <input type="text" id="search" placeholder="ابحث عن وقت أو كلمة..." />
+      <input type="text" id="search" placeholder="ابحث..." />
       <select id="filterType"><option value="">الكل</option><option value="صباحي">صباحي</option><option value="وسط">وسط</option><option value="مسائي">مسائي</option></select>
     </div>
 
     <!-- ✅ الطلبات -->
     <div class="card">
-      <h3>📋 طلبات التبديل</h3>
+      <h3>📋 طلبات مكانك</h3>
       <table><thead><tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th><th>⭐</th></tr></thead><tbody id="requestsTable"></tbody></table>
     </div>
 
@@ -131,6 +129,8 @@
     });
     const auth = getAuth(app);
     const db = getDatabase(app);
+    const requestsRef = ref(db, "requests");
+    const favRef = (uid) => ref(db, "favorites/"+uid);
 
     // ✅ الشفتات
     const shifts = {
@@ -138,19 +138,51 @@
       "وسط": ["١٢م-٩م","١م-١٠م","٣م-١٢م"],
       "مسائي": ["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
     };
-
-    // بناء القائمة
     const currentShiftEl=document.getElementById("currentShift");
     const wantedShiftEl=document.getElementById("wantedShift");
     for(let g in shifts){
-      let og1=document.createElement("optgroup"); og1.label=g;
-      shifts[g].forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;og1.appendChild(o)});
-      currentShiftEl.appendChild(og1);
-      wantedShiftEl.appendChild(og1.cloneNode(true));
+      let og=document.createElement("optgroup");og.label=g;
+      shifts[g].forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;og.appendChild(o)});
+      currentShiftEl.appendChild(og);
+      wantedShiftEl.appendChild(og.cloneNode(true));
     }
 
-    // بقية الكود → نفس كودك القديم: تسجيل دخول، أنيميشن، حفظ الطلب، حذف، عرض المفضلة، التبديلات
-    // (هنعدل فيه مكان ما نحفظ الطلب بحيث يشمل daysOff، ونضيف جداول المفضلة)
+    // بقية الكود نفس كودك: تسجيل الدخول + الأنيميشن + حفظ الطلب + refreshUI
+    // فقط نضيف: daysOff مع الطلب، منع current=want، البحث/فلترة بالـ search وfilterType، وحفظ المفضلة
+
+    // 🔹 إرسال طلب
+    btnSubmit.addEventListener("click", async () => {
+      const user=auth.currentUser; if(!user) return;
+      if(myRequestKey) return alert("عندك طلب موجود");
+      const cur=currentShiftEl.value, want=wantedShiftEl.value;
+      if(cur===want) return alert("❌ لا يمكن اختيار نفس الجدول");
+
+      const days=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
+      await push(requestsRef,{
+        userId:user.uid,email:user.email,
+        workLocation:workLocationEl.value,
+        phone:phoneEl.value,gender:genderEl.value,
+        currentShift:cur,wantedShift:want,
+        daysOff:days,createdAt:Date.now()
+      });
+    });
+
+    // 🔹 إضافة للمفضلة
+    function addFav(r){
+      const user=auth.currentUser; if(!user) return;
+      push(favRef(user.uid),r);
+    }
+    function removeFav(uid,key){ remove(ref(db,"favorites/"+uid+"/"+key)); }
+
+    // 🔹 البحث والفلترة
+    function filterRequests(r){
+      const f=document.getElementById("filterType").value;
+      const q=document.getElementById("search").value;
+      return (!f || shifts[f].includes(r.currentShift)) &&
+             (!q || r.currentShift.includes(q)||r.wantedShift.includes(q));
+    }
+
+    // 🔹 refreshUI نضيف فيها عرض daysOff و المفضلة
   </script>
 </body>
 </html>
