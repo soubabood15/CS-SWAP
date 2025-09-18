@@ -13,11 +13,7 @@
       background: #f0f2f5;
       color: #333;
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 25px;
-      animation: fadeIn 1s ease-in;
-    }
+    h1 { text-align: center; margin-bottom: 25px; animation: fadeIn 1s ease-in; }
     .card {
       background: #fff;
       padding: 20px;
@@ -26,11 +22,7 @@
       margin-bottom: 20px;
       animation: fadeInUp 0.8s ease-in-out;
     }
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      font-weight: 600;
-    }
+    label { display: block; margin: 10px 0 5px; font-weight: 600; }
     input, select, button {
       width: 100%;
       padding: 10px;
@@ -44,43 +36,14 @@
       border-color: #2980B9;
       box-shadow: 0 0 6px rgba(41,128,185,0.3);
     }
-    button {
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button.primary {
-      background: #2980B9;
-      color: #fff;
-      border: none;
-      transition: all 0.3s;
-    }
-    button.primary:hover {
-      background: #1f6390;
-      transform: scale(1.02);
-    }
-    button.danger {
-      background: #e74c3c;
-      color: #fff;
-      border: none;
-    }
-    button.danger:hover {
-      background: #c0392b;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      font-size: 14px;
-      animation: fadeIn 1s ease-in;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #f9fafc;
-    }
+    button { cursor: pointer; font-weight: 600; }
+    button.primary { background:#2980B9; color:#fff; border: none; transition: all 0.3s; }
+    button.primary:hover { background:#1f6390; transform: scale(1.02); }
+    button.danger { background: #e74c3c; color: #fff; border: none; }
+    button.danger:hover { background: #c0392b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; animation: fadeIn 1s ease-in; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #f9fafc; }
     .hidden { display: none; }
     .notice {
       padding: 10px;
@@ -91,15 +54,20 @@
       border-radius: 6px;
       animation: fadeIn 0.5s ease-in;
     }
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .error {
+      color: #e74c3c;
+      font-weight: 600;
+      margin-top: 8px;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: all 0.4s ease;
     }
-    @keyframes fadeInUp {
-      from { transform: translateY(15px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .error.show {
+      opacity: 1;
+      transform: translateY(0);
     }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeInUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
   </style>
 </head>
 <body>
@@ -111,13 +79,14 @@
     <input type="email" id="email" placeholder="الإيميل" />
     <input type="password" id="password" placeholder="كلمة المرور" />
     <button id="btnLogin" class="primary">دخول</button>
+    <p id="loginError" class="error hidden"></p>
   </div>
 
   <!-- ✅ منطقة المستخدم -->
   <div id="mainArea" class="hidden">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>👋 أهلاً <span id="userEmail"></span></h3>
+        <h3>👋 أهلاً <span id="userName"></span></h3>
         <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
       </div>
       <div id="myRequest" class="notice hidden"></div>
@@ -197,7 +166,8 @@
 
     const loginBox = document.getElementById("loginBox");
     const mainArea = document.getElementById("mainArea");
-    const userEmailSpan = document.getElementById("userEmail");
+    const userNameSpan = document.getElementById("userName");
+    const loginError = document.getElementById("loginError");
     const myRequestDiv = document.getElementById("myRequest");
     const phoneEl = document.getElementById("phone");
     const genderEl = document.getElementById("gender");
@@ -216,10 +186,12 @@
     document.getElementById("btnLogin").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const pass = document.getElementById("password").value;
+      loginError.classList.remove("show");
       try {
         await signInWithEmailAndPassword(auth, email, pass);
       } catch (err) {
-        alert("❌ خطأ: " + err.message);
+        loginError.textContent = "كلمة السر أو الإيميل خاطئ";
+        loginError.classList.add("show");
       }
     });
 
@@ -233,7 +205,7 @@
       if (user) {
         loginBox.classList.add("hidden");
         mainArea.classList.remove("hidden");
-        userEmailSpan.textContent = user.email;
+        userNameSpan.textContent = user.displayName || user.email;
         refreshUI();
       } else {
         loginBox.classList.remove("hidden");
@@ -251,7 +223,7 @@
     // إرسال طلب
     btnSubmit.addEventListener("click", async () => {
       const user = auth.currentUser;
-      if (!user) return alert("سجل دخول أولاً");
+      if (!user) return;
       if (myRequestKey) return alert("عندك طلب موجود. احذفه لتضيف جديد.");
       const phone = phoneEl.value.trim();
       if (!/^[0-9]{9,12}$/.test(phone)) return alert("📞 رقم غير صحيح");
