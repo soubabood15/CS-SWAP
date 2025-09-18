@@ -12,6 +12,8 @@
     .sidebar button {display:block;width:100%;margin:10px 0;padding:10px;background:#34495e;color:#fff;border:none;cursor:pointer;text-align:right;border-radius:5px;}
     .sidebar button:hover {background:#1abc9c;}
     .main {flex:1;padding:20px;}
+    .topbar {display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+    .topbar span {font-size:14px;color:#555;}
     .card {background:#fff;padding:15px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);}
     table {width:100%;border-collapse:collapse;margin-top:10px;}
     th,td {border:1px solid #ddd;padding:6px;text-align:center;font-size:14px;}
@@ -48,6 +50,11 @@
 
     <!-- ✅ بعد الدخول -->
     <div id="mainArea" class="hidden">
+      <div class="topbar">
+        <span>📧 مسجل دخول: <b id="currentUserEmail"></b></span>
+        <button id="btnLogoutTop" class="danger">🚪 تسجيل خروج</button>
+      </div>
+
       <div id="successMsg">✅ تم إرسال جدولك بنجاح</div>
 
       <!-- إدخال جدولي -->
@@ -136,7 +143,6 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
     const sidebar=document.getElementById("sidebar");
@@ -145,6 +151,8 @@
     const passEl=document.getElementById("password");
     const loginError=document.getElementById("loginError");
     const btnLogout=document.getElementById("btnLogout");
+    const btnLogoutTop=document.getElementById("btnLogoutTop");
+    const currentUserEmail=document.getElementById("currentUserEmail");
 
     const workLocationEl=document.getElementById("workLocation");
     const phoneEl=document.getElementById("phone");
@@ -173,16 +181,19 @@
         loginBox.classList.add("hidden");
         mainArea.classList.remove("hidden");
         sidebar.classList.remove("hidden");
+        currentUserEmail.textContent = user.email;
         loadData();
       } else {
         loginBox.classList.remove("hidden");
         mainArea.classList.add("hidden");
         sidebar.classList.add("hidden");
+        currentUserEmail.textContent = "";
       }
     });
 
     // ✅ تسجيل خروج
     btnLogout.addEventListener("click", () => signOut(auth));
+    btnLogoutTop.addEventListener("click", () => signOut(auth));
 
     // ✅ إرسال جدولي
     btnSubmit.addEventListener("click", async () => {
