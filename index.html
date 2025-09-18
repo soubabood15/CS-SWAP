@@ -114,42 +114,6 @@
         <h3>📌 الطلبات المطابقة</h3>
         <div id="matches"></div>
       </div>
-
-      <!-- ✅ بقية الأقسام -->
-      <div id="allSection" class="card hidden">
-        <h3>📋 كل الطلبات</h3>
-        <div style="display:flex;gap:15px;flex-wrap:wrap">
-          <div>
-            <label>📍 مكان العمل</label>
-            <select id="filterLocation">
-              <option value="">الكل</option>
-              <option>من البيت</option>
-              <option>من الشركة</option>
-            </select>
-          </div>
-          <div>
-            <label>🎯 الجدول المطلوب</label>
-            <select id="filterWanted">
-              <option value="">الكل</option>
-              <option>٨ص-٥م</option><option>٩ص-٦م</option>
-              <option>١٢م-٩م</option><option>١م-١٠م</option><option>٣م-١٢م</option>
-              <option>٤م-١ص</option><option>٥م-٢ص</option><option>٦م-٣ص</option>
-              <option>٧م-٤ص</option><option>٩م-٦ص</option><option>١٠م-٧ص</option><option>١١م-٨ص</option>
-            </select>
-          </div>
-        </div>
-        <table><thead><tr><th>الموظف</th><th>جدوله</th><th>📌</th></tr></thead><tbody id="allRequests"></tbody></table>
-      </div>
-
-      <div id="savedSection" class="card hidden">
-        <h3>📦 الطلبات المحفوظة</h3>
-        <table><thead><tr><th>الموظف</th><th>جدوله</th><th>❌</th></tr></thead><tbody id="savedRequests"></tbody></table>
-      </div>
-
-      <div id="mineSection" class="card hidden">
-        <h3>📝 طلباتي</h3>
-        <table><thead><tr><th>جدولي</th><th>❌</th></tr></thead><tbody id="myRequests"></tbody></table>
-      </div>
     </div>
   </div>
 
@@ -157,7 +121,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
@@ -168,9 +132,11 @@
       messagingSenderId: "464443469235",
       appId: "1:464443469235:web:4d7904eeb3952402342fc6"
     });
+
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // عناصر DOM
     const loginBox=document.getElementById("loginBox");
     const mainArea=document.getElementById("mainArea");
     const sidebar=document.getElementById("sidebar");
@@ -189,31 +155,37 @@
     const matchesEl=document.getElementById("matches");
     const successMsg=document.getElementById("successMsg");
 
-    const allRequestsEl=document.getElementById("allRequests");
-    const savedRequestsEl=document.getElementById("savedRequests");
-    const myRequestsEl=document.getElementById("myRequests");
-
-    const allSection=document.getElementById("allSection");
-    const savedSection=document.getElementById("savedSection");
-    const mineSection=document.getElementById("mineSection");
-
     let allRequests={};
 
-    // تسجيل الدخول
-    btnLogin.addEventListener("click",async()=>{
-      try{await signInWithEmailAndPassword(auth,emailEl.value,passEl.value);}
-      catch(e){loginError.textContent="❌ الإيميل أو كلمة المرور خاطئة";}
+    // ✅ تسجيل الدخول
+    btnLogin.addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
+        loginError.textContent = "";
+      } catch (e) {
+        loginError.textContent = "❌ الإيميل أو كلمة المرور خاطئة";
+      }
     });
 
-    onAuthStateChanged(auth,(user)=>{
-      if(user){loginBox.classList.add("hidden");mainArea.classList.remove("hidden");sidebar.classList.remove("hidden");loadData();}
-      else{loginBox.classList.remove("hidden");mainArea.classList.add("hidden");sidebar.classList.add("hidden");}
+    // ✅ مراقبة المستخدم
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginBox.classList.add("hidden");
+        mainArea.classList.remove("hidden");
+        sidebar.classList.remove("hidden");
+        loadData();
+      } else {
+        loginBox.classList.remove("hidden");
+        mainArea.classList.add("hidden");
+        sidebar.classList.add("hidden");
+      }
     });
 
-    btnLogout.addEventListener("click",()=>signOut(auth));
+    // ✅ تسجيل خروج
+    btnLogout.addEventListener("click", () => signOut(auth));
 
-    // إرسال جدولي
-    btnSubmit.addEventListener("click",async()=>{
+    // ✅ إرسال جدولي
+    btnSubmit.addEventListener("click", async () => {
       const user=auth.currentUser;if(!user) return;
       const daysCustom={};
       document.querySelectorAll("#daysCustom select").forEach(s=>{
@@ -236,67 +208,15 @@
       setTimeout(()=>successMsg.style.display="none",3000);
     });
 
-    const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-    const shifts=["٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م","٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"];
-    document.querySelectorAll("#daysCustom select").forEach(sel=>{
-      shifts.forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);});
-    });
-
-    // عرض جدول أسبوعي
-    function renderSchedule(r){
-      let html="<table class='week-table'><tr>";
-      days.forEach(d=>html+=`<th>${d}</th>`);html+="</tr><tr>";
-      days.forEach(d=>{
-        let val=r.daysCustom?.[d]||r.baseShift;
-        if(r.daysOff?.includes(d)) val="عطلة";
-        html+=`<td>${val}</td>`;
-      });
-      html+="</tr></table>";
-      return html;
-    }
-
+    // ✅ تحميل البيانات (مؤقت للمطابقات)
     function loadData(){
       onValue(ref(db,"requests"),(snap)=>{
         allRequests=snap.val()||{};
-        renderAll(); renderMine(); renderMatches(); renderSaved();
+        renderMatches();
       });
     }
 
-    // كل الطلبات
-    function renderAll(){
-      allRequestsEl.innerHTML="";
-      const loc=document.getElementById("filterLocation").value;
-      const want=document.getElementById("filterWanted").value;
-
-      Object.entries(allRequests).forEach(([key,r])=>{
-        if(loc && r.workLocation!==loc) return;
-        if(want && r.wantedShift!==want) return;
-
-        const tr=document.createElement("tr");
-        tr.innerHTML=`<td>${r.phone}</td><td>${renderSchedule(r)}</td><td><button class="primary">📌</button></td>`;
-        tr.querySelector("button").onclick=()=>saveRequest(key,r);
-        allRequestsEl.appendChild(tr);
-      });
-    }
-    ["filterLocation","filterWanted"].forEach(id=>{
-      document.getElementById(id).addEventListener("change",renderAll);
-    });
-
-    // طلباتي
-    function renderMine(){
-      const user=auth.currentUser;if(!user) return;
-      myRequestsEl.innerHTML="";
-      Object.entries(allRequests).forEach(([key,r])=>{
-        if(r.userId===user.uid){
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${renderSchedule(r)}</td><td><button class="danger">❌</button></td>`;
-          tr.querySelector("button").onclick=()=>remove(ref(db,"requests/"+key));
-          myRequestsEl.appendChild(tr);
-        }
-      });
-    }
-
-    // المطابقات
+    // ✅ المطابقات
     function renderMatches(){
       const user=auth.currentUser;if(!user) return;
       matchesEl.innerHTML="";
@@ -313,26 +233,6 @@
         }
       });
     }
-
-    // المحفوظة
-    function renderSaved(){
-      const user=auth.currentUser;if(!user) return;
-      onValue(ref(db,"saved/"+user.uid),(snap)=>{
-        const data=snap.val()||{};
-        savedRequestsEl.innerHTML="";
-        Object.entries(data).forEach(([key,r])=>{
-          const tr=document.createElement("tr");
-          tr.innerHTML=`<td>${r.phone}</td><td>${renderSchedule(r)}</td><td><button class="danger">❌</button></td>`;
-          tr.querySelector("button").onclick=()=>remove(ref(db,"saved/"+user.uid+"/"+key));
-          savedRequestsEl.appendChild(tr);
-        });
-      });
-    }
-
-    function saveRequest(key,r){
-      const user=auth.currentUser;if(!user) return;
-      set(ref(db,"saved/"+user.uid+"/"+key),r);
-    }
-
-    // التبديل بين الأقسام
-    document.querySelectorAll(".sidebar
+  </script>
+</body>
+</html>
