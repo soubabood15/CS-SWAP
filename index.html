@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>📅 نظام تبديل الشفتات</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f5f5; max-width:700px; margin:30px auto; padding:20px; }
+    body { font-family: Arial, sans-serif; background:#f5f5f5; max-width:800px; margin:30px auto; padding:20px; }
     h1 { text-align:center; }
     form, .requests { background:#fff; padding:15px; border-radius:8px; box-shadow:0 0 5px #ccc; margin-bottom:20px; }
     label { display:block; margin:10px 0 5px; }
@@ -12,7 +12,9 @@
       width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;
     }
     button { background:#2980B9; color:#fff; cursor:pointer; }
-    .request { padding:10px; border-bottom:1px solid #eee; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+    th { background:#eee; }
     .match { padding:10px; margin-top:10px; border-radius:6px; }
     .yes { background:#c8e6c9; color:#2e7d32; }
     .no { background:#ffcdd2; color:#c62828; }
@@ -22,6 +24,7 @@
 
   <h1>📅 نظام تبديل الشفتات</h1>
 
+  <!-- النموذج -->
   <form id="shiftForm">
     <label>اسم الموظف:</label>
     <input type="text" id="name" required>
@@ -41,20 +44,30 @@
     <button type="submit">إرسال الطلب</button>
   </form>
 
+  <!-- عرض الطلبات -->
   <div class="requests">
-    <h2>الطلبات المسجلة</h2>
-    <div id="requestsList"></div>
+    <h2>📋 الطلبات المسجلة</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>👤 الاسم</th>
+          <th>الشفت الحالي</th>
+          <th>الشفت المطلوب</th>
+        </tr>
+      </thead>
+      <tbody id="requestsTable"></tbody>
+    </table>
   </div>
 
+  <!-- النتيجة -->
   <div id="result"></div>
 
   <!-- Firebase -->
   <script type="module">
-    // استيراد Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-    // إعدادات Firebase الخاصة بمشروعك
+    // ✅ إعدادات Firebase (تأكد إنها نفس اللي عندك)
     const firebaseConfig = {
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
       authDomain: "swap-8005b.firebaseapp.com",
@@ -65,39 +78,38 @@
       appId: "1:464443469235:web:4d7904eeb3952402342fc6"
     };
 
-    // تهيئة Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
     const form = document.getElementById("shiftForm");
-    const requestsList = document.getElementById("requestsList");
+    const table = document.getElementById("requestsTable");
     const result = document.getElementById("result");
 
+    // إضافة طلب
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value;
       const currentShift = document.getElementById("currentShift").value;
       const wantedShift = document.getElementById("wantedShift").value;
 
-      // إضافة الطلب لقاعدة البيانات
       const requestsRef = ref(db, "requests");
       await push(requestsRef, { name, currentShift, wantedShift });
 
       form.reset();
     });
 
-    // عرض الطلبات بشكل حي
+    // الاستماع للتغييرات
     const requestsRef = ref(db, "requests");
     onValue(requestsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const requests = Object.values(data);
-      requestsList.innerHTML = "";
+      table.innerHTML = "";
 
+      // عرض الطلبات في جدول
       requests.forEach(req => {
-        const div = document.createElement("div");
-        div.classList.add("request");
-        div.innerText = `👤 ${req.name} | الحالي: ${req.currentShift} | يطلب: ${req.wantedShift}`;
-        requestsList.appendChild(div);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${req.name}</td><td>${req.currentShift}</td><td>${req.wantedShift}</td>`;
+        table.appendChild(row);
       });
 
       // التحقق من وجود تبادل
@@ -115,6 +127,10 @@
           result.appendChild(resDiv);
         }
       });
+
+      if (requests.length > 0 && result.innerHTML === "") {
+        result.innerHTML = `<div class="match no">❌ لا يوجد أي تبديل متاح حالياً</div>`;
+      }
     });
   </script>
 </body>
