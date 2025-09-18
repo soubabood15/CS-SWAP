@@ -132,14 +132,36 @@
     const requestsRef = ref(db, "requests");
     const favRef = (uid) => ref(db, "favorites/"+uid);
 
-    // ✅ الشفتات
-    const shifts = {
-      "صباحي": ["٨ص-٥م","٩ص-٦م"],
-      "وسط": ["١٢م-٩م","١م-١٠م","٣م-١٢م"],
-      "مسائي": ["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
-    };
+    // عناصر
+    const loginBox=document.getElementById("loginBox");
+    const mainArea=document.getElementById("mainArea");
+    const userNameSpan=document.getElementById("userName");
+    const btnLogin=document.getElementById("btnLogin");
+    const emailEl=document.getElementById("email");
+    const passEl=document.getElementById("password");
+    const loginError=document.getElementById("loginError");
+    const btnLogout=document.getElementById("btnLogout");
+    const phoneEl=document.getElementById("phone");
+    const genderEl=document.getElementById("gender");
+    const workLocationEl=document.getElementById("workLocation");
     const currentShiftEl=document.getElementById("currentShift");
     const wantedShiftEl=document.getElementById("wantedShift");
+    const btnSubmit=document.getElementById("btnSubmit");
+    const btnDelete=document.getElementById("btnDelete");
+    const myShiftDiv=document.getElementById("myShift");
+    const btnClearMyShift=document.getElementById("btnClearMyShift");
+    const requestsTable=document.getElementById("requestsTable");
+    const favoritesTable=document.getElementById("favoritesTable");
+    const matchesTable=document.getElementById("matchesTable");
+
+    let allRequests={}; let myRequestKey=null; let wrongMode=false;
+
+    // ✅ الشفتات
+    const shifts={
+      "صباحي":["٨ص-٥م","٩ص-٦م"],
+      "وسط":["١٢م-٩م","١م-١٠م","٣م-١٢م"],
+      "مسائي":["٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"]
+    };
     for(let g in shifts){
       let og=document.createElement("optgroup");og.label=g;
       shifts[g].forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;og.appendChild(o)});
@@ -147,42 +169,69 @@
       wantedShiftEl.appendChild(og.cloneNode(true));
     }
 
-    // بقية الكود نفس كودك: تسجيل الدخول + الأنيميشن + حفظ الطلب + refreshUI
-    // فقط نضيف: daysOff مع الطلب، منع current=want، البحث/فلترة بالـ search وfilterType، وحفظ المفضلة
+    // دوران الزر
+    emailEl.addEventListener("input",()=>{
+      loginError.classList.remove("show");
+      if(!emailEl.value.toLowerCase().endsWith("@csmena.com")) btnLogin.classList.add("rotate");
+      else btnLogin.classList.remove("rotate");
+    });
 
-    // 🔹 إرسال طلب
-    btnSubmit.addEventListener("click", async () => {
-      const user=auth.currentUser; if(!user) return;
+    // تسجيل الدخول
+    btnLogin.addEventListener("click",async()=>{
+      const email=emailEl.value.trim(), pass=passEl.value;
+      loginError.classList.remove("show");
+      if(!email.toLowerCase().endsWith("@csmena.com")) return;
+      try{
+        await signInWithEmailAndPassword(auth,email,pass);
+        wrongMode=false; btnLogin.style.position="relative";
+        loginBox.classList.add("hidden"); mainArea.classList.remove("hidden");
+      }catch(err){
+        wrongMode=true; btnLogin.style.position="absolute";
+        loginError.textContent="كلمة السر أو الإيميل خاطئ"; loginError.classList.add("show");
+      }
+    });
+
+    // زر الهروب
+    btnLogin.addEventListener("mouseover",()=>{
+      if(!wrongMode) return;
+      const x=Math.floor(Math.random()*220)-110, y=Math.floor(Math.random()*120)-60;
+      btnLogin.style.left=x+"px"; btnLogin.style.top=y+"px";
+    });
+
+    // مراقبة الدخول
+    onAuthStateChanged(auth,(user)=>{
+      if(user){loginBox.classList.add("hidden");mainArea.classList.remove("hidden");userNameSpan.textContent=user.email;refreshUI();}
+      else{loginBox.classList.remove("hidden");mainArea.classList.add("hidden");myRequestKey=null;wrongMode=false;btnLogin.classList.remove("rotate");}
+    });
+
+    // خروج
+    btnLogout.addEventListener("click",()=>signOut(auth));
+
+    // إرسال طلب
+    btnSubmit.addEventListener("click",async()=>{
+      const user=auth.currentUser;if(!user) return;
       if(myRequestKey) return alert("عندك طلب موجود");
       const cur=currentShiftEl.value, want=wantedShiftEl.value;
       if(cur===want) return alert("❌ لا يمكن اختيار نفس الجدول");
-
       const days=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
-      await push(requestsRef,{
-        userId:user.uid,email:user.email,
-        workLocation:workLocationEl.value,
-        phone:phoneEl.value,gender:genderEl.value,
-        currentShift:cur,wantedShift:want,
-        daysOff:days,createdAt:Date.now()
-      });
+      await push(requestsRef,{userId:user.uid,email:user.email,workLocation:workLocationEl.value,phone:phoneEl.value,gender:genderEl.value,currentShift:cur,wantedShift:want,daysOff:days,createdAt:Date.now()});
     });
 
-    // 🔹 إضافة للمفضلة
-    function addFav(r){
-      const user=auth.currentUser; if(!user) return;
-      push(favRef(user.uid),r);
+    // refreshUI
+    function refreshUI(){
+      const user=auth.currentUser;if(!user) return;
+      requestsTable.innerHTML="";matchesTable.innerHTML="";favoritesTable.innerHTML="";myRequestKey=null;
+      Object.entries(allRequests).forEach(([k,r])=>{if(r.userId===user.uid) myRequestKey=k;});
+      Object.values(allRequests).forEach(r=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td><td><button class="save">⭐</button></td>`;
+        requestsTable.appendChild(tr);
+      });
+      if(myRequestKey){const my=allRequests[myRequestKey];myShiftDiv.textContent=`${my.currentShift} ➝ ${my.wantedShift} | عطلة: ${my.daysOff||"لا"}`;btnClearMyShift.classList.remove("hidden");}
+      else{myShiftDiv.textContent="لا يوجد جدول";btnClearMyShift.classList.add("hidden");}
     }
-    function removeFav(uid,key){ remove(ref(db,"favorites/"+uid+"/"+key)); }
 
-    // 🔹 البحث والفلترة
-    function filterRequests(r){
-      const f=document.getElementById("filterType").value;
-      const q=document.getElementById("search").value;
-      return (!f || shifts[f].includes(r.currentShift)) &&
-             (!q || r.currentShift.includes(q)||r.wantedShift.includes(q));
-    }
-
-    // 🔹 refreshUI نضيف فيها عرض daysOff و المفضلة
+    onValue(requestsRef,(snap)=>{allRequests=snap.val()||{};refreshUI();});
   </script>
 </body>
 </html>
