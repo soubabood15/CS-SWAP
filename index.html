@@ -15,6 +15,7 @@
     table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
     th, td { border:1px solid #ccc; padding:6px; text-align:center; }
     th { background:#eee; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
@@ -54,8 +55,8 @@
   </form>
 
   <!-- جميع الطلبات -->
-  <div class="requests">
-    <h2>📋 جميع الطلبات</h2>
+  <div id="allRequests" class="requests hidden">
+    <h2>📋 الطلبات المسجلة</h2>
     <table>
       <thead>
         <tr>
@@ -71,8 +72,8 @@
   </div>
 
   <!-- الطلبات المتاحة للتبديل -->
-  <div class="requests">
-    <h2>✅ الطلبات التي لها تبادل متاح</h2>
+  <div id="availableRequests" class="requests hidden">
+    <h2>✅ الطلبات المتاحة للتبديل</h2>
     <table>
       <thead>
         <tr>
@@ -109,6 +110,10 @@
     const form = document.getElementById("shiftForm");
     const requestsTable = document.getElementById("requestsTable");
     const matchesTable = document.getElementById("matchesTable");
+    const allRequestsDiv = document.getElementById("allRequests");
+    const availableRequestsDiv = document.getElementById("availableRequests");
+
+    let requests = [];
 
     // إضافة طلب جديد
     form.addEventListener("submit", async (e) => {
@@ -121,8 +126,15 @@
       const wantedShift = document.getElementById("wantedShift").value;
 
       // تحقق من رقم الهاتف
-      if (!/^[0-9]+$/.test(phone)) {
-        alert("📞 رقم الهاتف يجب أن يحتوي على أرقام فقط!");
+      if (!/^[0-9]{9,12}$/.test(phone)) {
+        alert("📞 رقم الهاتف يجب أن يكون أرقام فقط وطوله من 9 إلى 12 رقم.");
+        return;
+      }
+
+      // تحقق من تكرار الرقم
+      const exists = requests.some(r => r.phone === phone);
+      if (exists) {
+        alert("⚠️ لا يمكنك رفع أكثر من طلب واحد بنفس الرقم.");
         return;
       }
 
@@ -136,36 +148,42 @@
     const requestsRef = ref(db, "requests");
     onValue(requestsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const requests = Object.values(data);
+      requests = Object.values(data);
 
-      // عرض جميع الطلبات
+      const userLocation = document.getElementById("workLocation").value;
+
+      // عرض جميع الطلبات الخاصة بالمكان نفسه
       requestsTable.innerHTML = "";
-      requests.forEach(req => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${req.workLocation}</td>
-          <td>${req.phone}</td>
-          <td>${req.gender}</td>
-          <td>${req.currentShift}</td>
-          <td>${req.wantedShift}</td>
-        `;
-        requestsTable.appendChild(row);
-      });
+      requests
+        .filter(r => r.workLocation === userLocation)
+        .forEach(req => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${req.workLocation}</td>
+            <td>${req.phone}</td>
+            <td>${req.gender}</td>
+            <td>${req.currentShift}</td>
+            <td>${req.wantedShift}</td>
+          `;
+          requestsTable.appendChild(row);
+        });
 
-      // إيجاد التبادلات
+      allRequestsDiv.classList.remove("hidden");
+
+      // عرض الطلبات المتاحة للتبديل
       matchesTable.innerHTML = "";
-      const seen = new Set(); // عشان ما نكرر
+      const seen = new Set();
+      requests
+        .filter(r => r.workLocation === userLocation)
+        .forEach(r1 => {
+          const match = requests.find(r2 =>
+            r2.workLocation === userLocation &&
+            r2.currentShift === r1.wantedShift &&
+            r2.wantedShift === r1.currentShift &&
+            r1.phone !== r2.phone
+          );
 
-      requests.forEach(r1 => {
-        const match = requests.find(r2 =>
-          r2.currentShift === r1.wantedShift &&
-          r2.wantedShift === r1.currentShift &&
-          r1.phone !== r2.phone
-        );
-
-        if (match) {
-          // نستخدم رقم الهاتف كمفتاح عشان ما يتكرر
-          if (!seen.has(r1.phone)) {
+          if (match && !seen.has(r1.phone)) {
             seen.add(r1.phone);
             const row = document.createElement("tr");
             row.innerHTML = `
@@ -177,8 +195,9 @@
             `;
             matchesTable.appendChild(row);
           }
-        }
-      });
+        });
+
+      availableRequestsDiv.classList.remove("hidden");
     });
   </script>
 </body>
