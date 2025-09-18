@@ -154,11 +154,23 @@
     let allRequests = {};
     let savedRequests = {};
 
+    // ✅ تعريف الحقول
+    const phoneEl = document.getElementById("phone");
+    const workLocationEl = document.getElementById("workLocation");
+    const genderEl = document.getElementById("gender");
+    const baseShiftEl = document.getElementById("baseShift");
+    const wantedShiftEl = document.getElementById("wantedShift");
+
+    const matchesEl = document.getElementById("matches");
+    const allRequestsEl = document.getElementById("allRequests");
+    const savedRequestsEl = document.getElementById("savedRequests");
+    const myRequestsEl = document.getElementById("myRequests");
+
     // ✅ الشفتات
     const shifts = ["٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م","٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"];
     shifts.forEach(s=>{
-      baseShift.append(new Option(s,s));
-      wantedShift.append(new Option(s,s));
+      baseShiftEl.append(new Option(s,s));
+      wantedShiftEl.append(new Option(s,s));
       filterShift.append(new Option(s,s));
     });
     document.querySelectorAll("#daysCustom select").forEach(sel=>{
@@ -205,15 +217,15 @@
       const phone=phoneEl.value.trim();
       if(!/^[0-9]{9,12}$/.test(phone)){alert("📞 أدخل رقم هاتف صحيح");return;}
 
-      if(baseShift.value===wantedShift.value){alert("⚠️ الشفت المطلوب لا يمكن أن يساوي الحالي.");return;}
+      if(baseShiftEl.value===wantedShiftEl.value){alert("⚠️ الشفت المطلوب لا يمكن أن يساوي الحالي.");return;}
 
       const daysCustom={};
       document.querySelectorAll("#daysCustom select").forEach(s=>{if(s.value) daysCustom[s.dataset.day]=s.value;});
       const daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
 
       await push(ref(db,"requests"),{
-        userId:user.uid,phone:phoneEl.value,workLocation:workLocation.value,gender:gender.value,
-        baseShift:baseShift.value,wantedShift:wantedShift.value,
+        userId:user.uid,phone,workLocation:workLocationEl.value,gender:genderEl.value,
+        baseShift:baseShiftEl.value,wantedShift:wantedShiftEl.value,
         daysCustom,daysOff
       });
       successMsg.style.display="block";setTimeout(()=>successMsg.style.display="none",3000);
@@ -243,12 +255,12 @@
 
     // ✅ المطابقات
     function renderMatches(){
-      const u=auth.currentUser;if(!u)return;matches.innerHTML="";
+      const u=auth.currentUser;if(!u)return;matchesEl.innerHTML="";
       const myK=Object.keys(allRequests).find(k=>allRequests[k].userId===u.uid);if(!myK)return;
       const my=allRequests[myK];
       Object.entries(allRequests).forEach(([k,r])=>{
         if(r.userId!==u.uid&&r.baseShift===my.wantedShift&&r.wantedShift===my.baseShift){
-          matches.innerHTML+=renderBox(r,k,false,true);
+          matchesEl.innerHTML+=renderBox(r,k,false,true);
         }
       });
     }
@@ -268,9 +280,9 @@
 
     // ✅ طلباتي
     function renderMine(){
-      const u=auth.currentUser;if(!u)return;myRequests.innerHTML="";
+      const u=auth.currentUser;if(!u)return;myRequestsEl.innerHTML="";
       Object.entries(allRequests).forEach(([k,r])=>{
-        if(r.userId===u.uid) myRequests.innerHTML+=renderBox(r,k,true,false);
+        if(r.userId===u.uid) myRequestsEl.innerHTML+=renderBox(r,k,true,false);
       });
     }
 
