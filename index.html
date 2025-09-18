@@ -27,13 +27,15 @@
     <input type="email" id="email" placeholder="الإيميل" />
     <input type="password" id="password" placeholder="كلمة المرور" />
     <button id="btnLogin" class="primary">دخول</button>
-    <button id="btnLogout">خروج</button>
   </div>
 
   <!-- ✅ منطقة المستخدم -->
   <div id="mainArea" class="hidden">
     <div class="card">
-      <h3>أهلاً <span id="userEmail"></span></h3>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3>أهلاً <span id="userEmail"></span></h3>
+        <button id="btnLogout">🚪 تسجيل خروج</button>
+      </div>
       <div id="myRequest" class="notice hidden"></div>
 
       <label>📍 مكان العمل</label>
@@ -113,13 +115,11 @@
     const mainArea = document.getElementById("mainArea");
     const userEmailSpan = document.getElementById("userEmail");
     const myRequestDiv = document.getElementById("myRequest");
-
     const phoneEl = document.getElementById("phone");
     const genderEl = document.getElementById("gender");
     const workLocationEl = document.getElementById("workLocation");
     const currentShiftEl = document.getElementById("currentShift");
     const wantedShiftEl = document.getElementById("wantedShift");
-
     const btnSubmit = document.getElementById("btnSubmit");
     const btnDelete = document.getElementById("btnDelete");
     const requestsTable = document.getElementById("requestsTable");
@@ -128,7 +128,7 @@
     let allRequests = {};
     let myRequestKey = null;
 
-    // تسجيل الدخول
+    // دخول
     document.getElementById("btnLogin").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const pass = document.getElementById("password").value;
@@ -139,7 +139,7 @@
       }
     });
 
-    // تسجيل الخروج
+    // خروج
     document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOut(auth);
     });
@@ -168,9 +168,7 @@
     btnSubmit.addEventListener("click", async () => {
       const user = auth.currentUser;
       if (!user) return alert("سجل دخول أولاً");
-
       if (myRequestKey) return alert("عندك طلب موجود. احذفه لتضيف جديد.");
-
       const phone = phoneEl.value.trim();
       if (!/^[0-9]{9,12}$/.test(phone)) return alert("📞 رقم غير صحيح");
 
@@ -205,17 +203,15 @@
 
       myRequestKey = null;
       for (const [key, r] of Object.entries(allRequests)) {
-        // عرض الطلبات الخاصة بمكان العمل
         if (r.workLocation === userLoc) {
           const tr = document.createElement("tr");
           tr.innerHTML = `<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td>`;
           requestsTable.appendChild(tr);
         }
-        // طلب المستخدم نفسه
         if (r.userId === user.uid) myRequestKey = key;
       }
 
-      // عرض الطلبات المتاحة للتبديل
+      // المطابقات
       const seen = new Set();
       for (const [k1, r1] of Object.entries(allRequests)) {
         if (r1.workLocation !== userLoc) continue;
@@ -233,7 +229,6 @@
         }
       }
 
-      // حالة الطلب الخاص بالمستخدم
       if (myRequestKey) {
         const my = allRequests[myRequestKey];
         myRequestDiv.classList.remove("hidden");
