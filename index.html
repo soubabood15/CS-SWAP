@@ -1,75 +1,40 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <title>نظام تبديل الشفتات — تسجيل دخول</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <title>📅 نظام تبديل الشفتات</title>
   <style>
-    body{font-family:Arial, sans-serif;max-width:980px;margin:20px auto;padding:18px;background:#f5f6f8;color:#111}
-    h1{text-align:center;margin-bottom:14px}
-    .card{background:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:14px}
-    label{display:block;margin:8px 0 6px}
-    input,select,button{width:100%;padding:8px;border:1px solid #cfcfcf;border-radius:6px;font-size:14px}
-    .row{display:flex;gap:10px}
-    .row > *{flex:1}
-    button.primary{background:#2b7bd3;color:#fff;border:0}
-    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-    th,td{border:1px solid #e0e0e0;padding:8px;text-align:center}
-    th{background:#fafafa}
-    .small{font-size:13px;color:#666}
-    .muted{color:#666}
-    .notice{padding:8px;border-radius:6px;background:#fff7d6;color:#7a6000;margin-top:8px}
-    .danger{background:#ffdcdc;color:#8b1f1f}
-    .inline{display:inline-block;width:auto;padding:6px 10px;border-radius:6px}
-    .hidden{display:none}
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background:#f5f5f5; }
+    h1 { text-align: center; }
+    .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px #ccc; margin-bottom: 20px; }
+    label { display: block; margin: 10px 0 5px; }
+    input, select, button { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    button { cursor: pointer; }
+    button.primary { background:#2980B9; color:#fff; border: none; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: center; }
+    th { background:#eee; }
+    .hidden { display: none; }
+    .notice { padding: 8px; background:#fff7d6; margin-top: 10px; border-radius: 6px; }
   </style>
 </head>
 <body>
   <h1>📅 نظام تبديل الشفتات</h1>
 
-  <!-- AUTH CARD -->
-  <div class="card" id="authCard">
-    <div id="authForms">
-      <h3>تسجيل / دخول</h3>
-
-      <div id="signupBox">
-        <label>إنشاء حساب (إيميل)</label>
-        <input type="email" id="suEmail" placeholder="example@mail.com" />
-        <label>كلمة المرور</label>
-        <input type="password" id="suPass" placeholder="كلمة المرور" />
-        <button id="btnSignup" class="primary">إنشاء حساب</button>
-      </div>
-
-      <hr style="margin:12px 0" />
-
-      <div id="signinBox">
-        <label>تسجيل دخول</label>
-        <input type="email" id="siEmail" placeholder="example@mail.com" />
-        <label>كلمة المرور</label>
-        <input type="password" id="siPass" placeholder="كلمة المرور" />
-        <button id="btnSignin" class="primary">تسجيل دخول</button>
-      </div>
-    </div>
-
-    <div id="userBox" class="hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div class="small">متصل كـ:</div>
-          <div id="userEmail" style="font-weight:600"></div>
-        </div>
-        <div style="text-align:right">
-          <button id="btnSignout" class="inline">تسجيل خروج</button>
-        </div>
-      </div>
-      <div id="userNotice" class="small muted" style="margin-top:8px">عندك طلب واحد فقط. يمكنك حذف طلبك لإرسال طلب جديد.</div>
-    </div>
+  <!-- ✅ تسجيل دخول -->
+  <div id="loginBox" class="card">
+    <h3>تسجيل دخول</h3>
+    <input type="email" id="email" placeholder="الإيميل" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button id="btnLogin" class="primary">دخول</button>
+    <button id="btnLogout">خروج</button>
   </div>
 
-  <!-- MAIN: form + tables -->
+  <!-- ✅ منطقة المستخدم -->
   <div id="mainArea" class="hidden">
-    <!-- form -->
     <div class="card">
-      <h3>أضف / حدّث طلب الشفت (مستخدم مسجل)</h3>
+      <h3>أهلاً <span id="userEmail"></span></h3>
+      <div id="myRequest" class="notice hidden"></div>
 
       <label>📍 مكان العمل</label>
       <select id="workLocation">
@@ -77,8 +42,8 @@
         <option value="من الشركة">من الشركة</option>
       </select>
 
-      <label>📞 رقم الهاتف (أرقام فقط)</label>
-      <input id="phone" type="text" placeholder="مثال: 0551234567" />
+      <label>📞 رقم الهاتف</label>
+      <input type="text" id="phone" placeholder="مثال: 0551234567" />
 
       <label>⚧ الجنس</label>
       <select id="gender">
@@ -86,48 +51,37 @@
         <option value="أنثى">أنثى</option>
       </select>
 
-      <div class="row" style="margin-top:6px">
-        <div>
-          <label>الشفت الحالي</label>
-          <select id="currentShift">
-            <option value="11-8">11-8</option>
-            <option value="5-2">5-2</option>
-          </select>
-        </div>
-        <div>
-          <label>الشفت المطلوب</label>
-          <select id="wantedShift">
-            <option value="11-8">11-8</option>
-            <option value="5-2">5-2</option>
-          </select>
-        </div>
-      </div>
+      <label>شفتك الحالي</label>
+      <select id="currentShift">
+        <option value="11-8">11-8</option>
+        <option value="5-2">5-2</option>
+      </select>
 
-      <div style="display:flex;gap:8px;margin-top:10px">
-        <button id="btnSubmit" class="primary">إرسال الطلب</button>
-        <button id="btnDelete" class="inline danger hidden">حذف طلبي</button>
-      </div>
+      <label>الشفت المطلوب</label>
+      <select id="wantedShift">
+        <option value="11-8">11-8</option>
+        <option value="5-2">5-2</option>
+      </select>
 
-      <div id="formMessage" class="notice hidden"></div>
+      <button id="btnSubmit" class="primary">إرسال الطلب</button>
+      <button id="btnDelete" class="hidden">حذف طلبي</button>
     </div>
 
-    <!-- tables -->
     <div class="card">
-      <h3>طلبات المكان الحالي (ستُعرض حسب اختيارك: من البيت / من الشركة)</h3>
-      <div class="small">لن ترى طلبات مكان آخر — هذا يمنعك من رؤية طلبات الشركة إن اخترت "من البيت" والعكس.</div>
+      <h3>📋 طلبات مكانك</h3>
       <table>
         <thead>
-          <tr><th>مكان العمل</th><th>الهاتف</th><th>الجنس</th><th>شفت الحالي</th><th>شفت مطلوب</th></tr>
+          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
         </thead>
         <tbody id="requestsTable"></tbody>
       </table>
     </div>
 
     <div class="card">
-      <h3>الطلبات التي لها تبادل متاح (ضمن نفس المكان)</h3>
+      <h3>✅ الطلبات المتاحة للتبديل</h3>
       <table>
         <thead>
-          <tr><th>مكان العمل</th><th>الهاتف</th><th>الجنس</th><th>شفت الحالي</th><th>شفت مطلوب</th></tr>
+          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
         </thead>
         <tbody id="matchesTable"></tbody>
       </table>
@@ -136,12 +90,10 @@
 
   <!-- Firebase -->
   <script type="module">
-    // استيراد
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
     import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
-    // ---- ضع إعدادات Firebase الخاصة بمشروعك هنا ----
     const firebaseConfig = {
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
       authDomain: "swap-8005b.firebaseapp.com",
@@ -151,256 +103,153 @@
       messagingSenderId: "464443469235",
       appId: "1:464443469235:web:4d7904eeb3952402342fc6"
     };
-    // -----------------------------------------------
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
-    const requestsRef = ref(db, 'requests');
+    const requestsRef = ref(db, "requests");
 
-    // DOM
-    const authCard = document.getElementById('authCard');
-    const authForms = document.getElementById('authForms');
-    const signupBox = document.getElementById('signupBox');
-    const signinBox = document.getElementById('signinBox');
-    const btnSignup = document.getElementById('btnSignup');
-    const btnSignin = document.getElementById('btnSignin');
-    const suEmail = document.getElementById('suEmail');
-    const suPass = document.getElementById('suPass');
-    const siEmail = document.getElementById('siEmail');
-    const siPass = document.getElementById('siPass');
+    const loginBox = document.getElementById("loginBox");
+    const mainArea = document.getElementById("mainArea");
+    const userEmailSpan = document.getElementById("userEmail");
+    const myRequestDiv = document.getElementById("myRequest");
 
-    const userBox = document.getElementById('userBox');
-    const userEmail = document.getElementById('userEmail');
-    const btnSignout = document.getElementById('btnSignout');
+    const phoneEl = document.getElementById("phone");
+    const genderEl = document.getElementById("gender");
+    const workLocationEl = document.getElementById("workLocation");
+    const currentShiftEl = document.getElementById("currentShift");
+    const wantedShiftEl = document.getElementById("wantedShift");
 
-    const mainArea = document.getElementById('mainArea');
-    const workLocationEl = document.getElementById('workLocation');
-    const phoneEl = document.getElementById('phone');
-    const genderEl = document.getElementById('gender');
-    const currentShiftEl = document.getElementById('currentShift');
-    const wantedShiftEl = document.getElementById('wantedShift');
-    const btnSubmit = document.getElementById('btnSubmit');
-    const btnDelete = document.getElementById('btnDelete');
-    const formMessage = document.getElementById('formMessage');
+    const btnSubmit = document.getElementById("btnSubmit");
+    const btnDelete = document.getElementById("btnDelete");
+    const requestsTable = document.getElementById("requestsTable");
+    const matchesTable = document.getElementById("matchesTable");
 
-    const requestsTable = document.getElementById('requestsTable');
-    const matchesTable = document.getElementById('matchesTable');
+    let allRequests = {};
+    let myRequestKey = null;
 
-    // حالة محلية
-    let allRequests = {}; // كامل البيانات من Firebase (key -> item)
-    let currentUser = null;
-    let myRequestKey = null; // مفتاح طلب المستخدم في DB لو موجود
-
-    // --- AUTH handlers ---
-    btnSignup.addEventListener('click', async () => {
-      const email = suEmail.value.trim();
-      const pass = suPass.value;
-      if (!email || !pass) return alert('ادخل إيميل وكلمة مرور.');
-      try {
-        await createUserWithEmailAndPassword(auth, email, pass);
-        alert('تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.');
-        suEmail.value = ''; suPass.value = '';
-      } catch(err) {
-        alert('خطأ إنشاء حساب: ' + err.message);
-      }
-    });
-
-    btnSignin.addEventListener('click', async () => {
-      const email = siEmail.value.trim();
-      const pass = siPass.value;
-      if (!email || !pass) return alert('ادخل إيميل وكلمة مرور.');
+    // تسجيل الدخول
+    document.getElementById("btnLogin").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const pass = document.getElementById("password").value;
       try {
         await signInWithEmailAndPassword(auth, email, pass);
-        siEmail.value = ''; siPass.value = '';
-      } catch(err) {
-        alert('خطأ تسجيل الدخول: ' + err.message);
+      } catch (err) {
+        alert("❌ خطأ: " + err.message);
       }
     });
 
-    btnSignout.addEventListener('click', async () => {
+    // تسجيل الخروج
+    document.getElementById("btnLogout").addEventListener("click", async () => {
       await signOut(auth);
     });
 
-    // --- React to auth state ---
-    onAuthStateChanged(auth, user => {
-      currentUser = user;
+    // متابعة حالة الدخول
+    onAuthStateChanged(auth, (user) => {
       if (user) {
-        // عرض واجهة المستخدم
-        authForms.classList.add('hidden');
-        userBox.classList.remove('hidden');
-        userEmail.textContent = user.email;
-        mainArea.classList.remove('hidden');
-        // فورًا نتحقق لو عنده طلب موجود
+        loginBox.classList.add("hidden");
+        mainArea.classList.remove("hidden");
+        userEmailSpan.textContent = user.email;
         findMyRequest();
       } else {
-        // عرض نماذج التسجيل/تسجيل الدخول
-        authForms.classList.remove('hidden');
-        userBox.classList.add('hidden');
-        mainArea.classList.add('hidden');
-        userEmail.textContent = '';
+        loginBox.classList.remove("hidden");
+        mainArea.classList.add("hidden");
         myRequestKey = null;
       }
     });
 
-    // --- الاستماع لتغيرات قاعدة البيانات (Realtime) ---
+    // الاستماع للتغييرات
     onValue(requestsRef, (snap) => {
-      const val = snap.val() || {};
-      allRequests = val; // كائن {key: {workLocation, phone,...}}
+      allRequests = snap.val() || {};
       refreshUI();
     });
 
-    // --- دوال مساعدة ---
-    function refreshUI(){
-      // نعرض الطلبات للمكان الذي اختاره المستخدم (إذا مسجل)
-      const userLoc = workLocationEl.value;
+    // إرسال طلب
+    btnSubmit.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("سجل دخول أولاً");
 
-      // جدول كل الطلبات (فلتر بالمكان)
-      requestsTable.innerHTML = '';
-      Object.entries(allRequests).forEach(([key, req]) => {
-        if (!userLoc || req.workLocation !== userLoc) return;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(req.workLocation)}</td>
-                        <td>${escapeHtml(req.phone)}</td>
-                        <td>${escapeHtml(req.gender)}</td>
-                        <td>${escapeHtml(req.currentShift)}</td>
-                        <td>${escapeHtml(req.wantedShift)}</td>`;
-        requestsTable.appendChild(tr);
+      if (myRequestKey) return alert("عندك طلب موجود. احذفه لتضيف جديد.");
+
+      const phone = phoneEl.value.trim();
+      if (!/^[0-9]{9,12}$/.test(phone)) return alert("📞 رقم غير صحيح");
+
+      await push(requestsRef, {
+        userId: user.uid,
+        email: user.email,
+        workLocation: workLocationEl.value,
+        phone,
+        gender: genderEl.value,
+        currentShift: currentShiftEl.value,
+        wantedShift: wantedShiftEl.value,
+        createdAt: Date.now()
       });
+    });
 
-      // جدول المطابقات (ضمن نفس المكان)
-      matchesTable.innerHTML = '';
+    // حذف الطلب
+    btnDelete.addEventListener("click", async () => {
+      if (myRequestKey) {
+        await remove(ref(db, "requests/" + myRequestKey));
+        myRequestKey = null;
+      }
+    });
+
+    // تحديث العرض
+    function refreshUI() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userLoc = workLocationEl.value;
+      requestsTable.innerHTML = "";
+      matchesTable.innerHTML = "";
+
+      myRequestKey = null;
+      for (const [key, r] of Object.entries(allRequests)) {
+        // عرض الطلبات الخاصة بمكان العمل
+        if (r.workLocation === userLoc) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td>`;
+          requestsTable.appendChild(tr);
+        }
+        // طلب المستخدم نفسه
+        if (r.userId === user.uid) myRequestKey = key;
+      }
+
+      // عرض الطلبات المتاحة للتبديل
       const seen = new Set();
-      Object.entries(allRequests).forEach(([k1, r1]) => {
-        if (!userLoc || r1.workLocation !== userLoc) return;
+      for (const [k1, r1] of Object.entries(allRequests)) {
+        if (r1.workLocation !== userLoc) continue;
         const match = Object.entries(allRequests).find(([k2, r2]) =>
           k1 !== k2 &&
           r2.workLocation === r1.workLocation &&
           r2.currentShift === r1.wantedShift &&
           r2.wantedShift === r1.currentShift
         );
-        if (match && !seen.has(k1) && !seen.has(match[0])) {
-          // عرض كلا الطرفين كصف واحد (نختار عرض r1 أولاً)
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${escapeHtml(r1.workLocation)}</td>
-                          <td>${escapeHtml(r1.phone)} ⇄ ${escapeHtml(match[1].phone)}</td>
-                          <td>${escapeHtml(r1.gender)}</td>
-                          <td>${escapeHtml(r1.currentShift)}</td>
-                          <td>${escapeHtml(r1.wantedShift)}</td>`;
-          matchesTable.appendChild(tr);
+        if (match && !seen.has(k1)) {
           seen.add(k1); seen.add(match[0]);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${r1.workLocation}</td><td>${r1.phone} ⇄ ${match[1].phone}</td><td>${r1.gender}</td><td>${r1.currentShift}</td><td>${r1.wantedShift}</td>`;
+          matchesTable.appendChild(tr);
         }
-      });
+      }
 
-      // تحديث حالة الطلب الخاص بالمستخدم (وجود/عدم وجود)
-      if (currentUser) {
-        // نبحث عن طلب حيث userId === currentUser.uid
-        myRequestKey = null;
-        Object.entries(allRequests).forEach(([k, r]) => {
-          if (r.userId === currentUser.uid) myRequestKey = k;
-        });
-
-        if (myRequestKey) {
-          // عطل الإرسال، وأظهر زر حذف وبيانات الطلب
-          btnSubmit.disabled = true;
-          btnDelete.classList.remove('hidden');
-          formMessage.classList.remove('hidden');
-          const my = allRequests[myRequestKey];
-          formMessage.innerHTML = `لديك طلب مفعل:<br>
-            <strong>مكان:</strong> ${escapeHtml(my.workLocation)} — <strong>هاتف:</strong> ${escapeHtml(my.phone)} — <strong>شفت:</strong> ${escapeHtml(my.currentShift)} → ${escapeHtml(my.wantedShift)}`;
-          // ضع القيم في الحقول (اختياري للعرض)
-          phoneEl.value = my.phone;
-          genderEl.value = my.gender;
-          currentShiftEl.value = my.currentShift;
-          wantedShiftEl.value = my.wantedShift;
-          workLocationEl.value = my.workLocation;
-        } else {
-          btnSubmit.disabled = false;
-          btnDelete.classList.add('hidden');
-          formMessage.classList.add('hidden');
-          phoneEl.value = '';
-        }
+      // حالة الطلب الخاص بالمستخدم
+      if (myRequestKey) {
+        const my = allRequests[myRequestKey];
+        myRequestDiv.classList.remove("hidden");
+        myRequestDiv.innerHTML = `📌 طلبك الحالي: ${my.currentShift} ➝ ${my.wantedShift} (${my.phone})`;
+        btnDelete.classList.remove("hidden");
+        btnSubmit.disabled = true;
+      } else {
+        myRequestDiv.classList.add("hidden");
+        btnDelete.classList.add("hidden");
+        btnSubmit.disabled = false;
       }
     }
 
-    // تحقق إن رقم الهاتف جديد وغير مسجل (منع سبام)
-    function phoneExists(phone){
-      return Object.values(allRequests).some(r => r.phone === phone);
-    }
-
-    // البحث عن طلب المستخدم (بعد تسجيل الدخول)
-    function findMyRequest(){
-      if (!currentUser) return;
-      myRequestKey = null;
-      Object.entries(allRequests).forEach(([k, r]) => {
-        if (r.userId === currentUser.uid) myRequestKey = k;
-      });
+    function findMyRequest() {
       refreshUI();
     }
-
-    // إرسال طلب جديد (مرتبط بالمستخدم)
-    btnSubmit.addEventListener('click', async () => {
-      if (!currentUser) return alert('يرجى تسجيل الدخول أولاً.');
-      const workLocation = workLocationEl.value;
-      const phone = phoneEl.value.trim();
-      const gender = genderEl.value;
-      const currentShift = currentShiftEl.value;
-      const wantedShift = wantedShiftEl.value;
-
-      if (!/^[0-9]{9,12}$/.test(phone)) {
-        alert('رقم الهاتف يجب أن يكون أرقام فقط وطوله بين 9 و12 رقم.');
-        return;
-      }
-
-      // منع تكرار رقم
-      if (phoneExists(phone)) {
-        alert('هذا الرقم مسجل بالفعل. لا يمكنك إضافة أكثر من طلب بنفس رقم الهاتف.');
-        return;
-      }
-
-      // منع المستخدم من إضافة أكثر من طلب (تحقّق إضافي)
-      if (Object.values(allRequests).some(r => r.userId === currentUser.uid)) {
-        alert('لديك طلب حالياً. احذف طلبك أولا إن أردت إنشاء طلب جديد.');
-        return;
-      }
-
-      // إضافة الطلب مرتبط بالـ userId + email
-      try {
-        await push(requestsRef, {
-          userId: currentUser.uid,
-          email: currentUser.email,
-          workLocation, phone, gender, currentShift, wantedShift,
-          createdAt: Date.now()
-        });
-        // سيتم تحديث واجهة المستخدم من حدث onValue
-      } catch(err) {
-        alert('خطأ أثناء إرسال الطلب: ' + err.message);
-      }
-    });
-
-    // حذف طلب المستخدم (إن وجد)
-    btnDelete.addEventListener('click', async () => {
-      if (!myRequestKey) return alert('لا يوجد طلب لحذفه.');
-      const sure = confirm('هل تريد حذف طلبك نهائياً؟');
-      if (!sure) return;
-      try {
-        await remove(ref(db, 'requests/' + myRequestKey));
-        myRequestKey = null;
-        alert('تم حذف طلبك.');
-      } catch(err) {
-        alert('خطأ عند الحذف: ' + err.message);
-      }
-    });
-
-    // مساعدة: sanitize
-    function escapeHtml(s){
-      if (s == null) return '';
-      return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-    }
-
-    // لو المستخدم غيّر workLocation (يريد يبدّل العرض) نعيد بناء الواجهة فورياً
-    workLocationEl.addEventListener('change', () => refreshUI());
-
   </script>
 </body>
 </html>
