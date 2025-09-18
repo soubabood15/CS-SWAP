@@ -3,173 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <title>📅 نظام تبديل الشفتات</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Tajawal', sans-serif;
-      max-width: 950px;
-      margin: 20px auto;
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 50px auto;
       padding: 20px;
       background: #f0f2f5;
-      color: #333;
+      text-align: center;
     }
-    h1 { text-align: center; margin-bottom: 25px; }
     .card {
       background: #fff;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,.08);
-      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,.1);
       position: relative;
     }
-    input, select, button {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 12px;
+      margin: 8px 0;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 15px;
+      font-size: 16px;
     }
     button {
+      background: #2980B9;
+      color: white;
+      font-weight: bold;
       cursor: pointer;
-      font-weight: 600;
       transition: all 0.2s ease;
       position: relative;
     }
-    button.primary { background:#2980B9; color:#fff; border: none; }
-    button.primary:hover { background:#1f6390; }
-    button.danger { background: #e74c3c; color: #fff; border: none; }
-    button.danger:hover { background: #c0392b; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background: #f9fafc; }
-    .hidden { display: none; }
-    .notice {
-      padding: 10px;
-      background: #fffbe6;
-      border: 1px solid #ffe58f;
-      margin-top: 12px;
-      border-radius: 6px;
+    button:hover { background: #1f6390; }
+
+    /* دوران */
+    @keyframes rotate {
+      0%   { transform: rotate(0deg); }
+      25%  { transform: rotate(10deg); }
+      50%  { transform: rotate(-10deg); }
+      75%  { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .rotate {
+      animation: rotate 0.6s infinite;
+      background: #e74c3c !important;
     }
   </style>
 </head>
 <body>
-  <h1>📅 نظام تبديل الشفتات</h1>
-
-  <!-- ✅ تسجيل دخول -->
-  <div id="loginBox" class="card">
-    <h3>🔑 تسجيل دخول</h3>
+  <h1>🔑 تسجيل دخول</h1>
+  <div class="card">
     <input type="email" id="email" placeholder="الإيميل" />
     <input type="password" id="password" placeholder="كلمة المرور" />
-    <button id="btnLogin" class="primary">دخول</button>
+    <button id="btnLogin">دخول</button>
   </div>
 
-  <!-- ✅ منطقة المستخدم -->
-  <div id="mainArea" class="hidden">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <h3>👋 أهلاً <span id="userName"></span></h3>
-        <button id="btnLogout" class="danger">🚪 تسجيل خروج</button>
-      </div>
-      <div id="myRequest" class="notice hidden"></div>
-
-      <label>📍 مكان العمل</label>
-      <select id="workLocation">
-        <option value="من البيت">من البيت</option>
-        <option value="من الشركة">من الشركة</option>
-      </select>
-
-      <label>📞 رقم الهاتف</label>
-      <input type="text" id="phone" placeholder="مثال: 0551234567" />
-
-      <label>⚧ الجنس</label>
-      <select id="gender">
-        <option value="ذكر">ذكر</option>
-        <option value="أنثى">أنثى</option>
-      </select>
-
-      <label>شفتك الحالي</label>
-      <select id="currentShift">
-        <option value="11-8">11-8</option>
-        <option value="5-2">5-2</option>
-      </select>
-
-      <label>الشفت المطلوب</label>
-      <select id="wantedShift">
-        <option value="11-8">11-8</option>
-        <option value="5-2">5-2</option>
-      </select>
-
-      <button id="btnSubmit" class="primary">📩 إرسال الطلب</button>
-      <button id="btnDelete" class="danger hidden">🗑️ حذف طلبي</button>
-    </div>
-
-    <div class="card">
-      <h3>📋 طلبات مكانك</h3>
-      <table>
-        <thead>
-          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
-        </thead>
-        <tbody id="requestsTable"></tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <h3>🤝 الطلبات المتاحة للتبديل</h3>
-      <table>
-        <thead>
-          <tr><th>مكان</th><th>الهاتف</th><th>الجنس</th><th>شفت حالي</th><th>شفت مطلوب</th></tr>
-        </thead>
-        <tbody id="matchesTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ✅ Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
       authDomain: "swap-8005b.firebaseapp.com",
-      databaseURL: "https://swap-8005b-default-rtdb.firebaseio.com",
       projectId: "swap-8005b",
-      storageBucket: "swap-8005b.appspot.com",
-      messagingSenderId: "464443469235",
-      appId: "1:464443469235:web:4d7904eeb3952402342fc6"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getDatabase(app);
-    const requestsRef = ref(db, "requests");
 
-    const loginBox = document.getElementById("loginBox");
-    const mainArea = document.getElementById("mainArea");
-    const userNameSpan = document.getElementById("userName");
     const btnLogin = document.getElementById("btnLogin");
-    const phoneEl = document.getElementById("phone");
-    const genderEl = document.getElementById("gender");
-    const workLocationEl = document.getElementById("workLocation");
-    const currentShiftEl = document.getElementById("currentShift");
-    const wantedShiftEl = document.getElementById("wantedShift");
-    const btnSubmit = document.getElementById("btnSubmit");
-    const btnDelete = document.getElementById("btnDelete");
-    const requestsTable = document.getElementById("requestsTable");
-    const matchesTable = document.getElementById("matchesTable");
-
-    let allRequests = {};
-    let myRequestKey = null;
+    const emailEl = document.getElementById("email");
     let wrongMode = false;
 
-    // دخول
+    // 🔹 شرط الدومين (@csmena.com)
+    emailEl.addEventListener("input", () => {
+      if (!emailEl.value.toLowerCase().endsWith("@csmena.com")) {
+        btnLogin.classList.add("rotate");
+      } else {
+        btnLogin.classList.remove("rotate");
+      }
+    });
+
+    // 🔹 تسجيل الدخول
     btnLogin.addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
+      const email = emailEl.value;
       const pass = document.getElementById("password").value;
+
+      // لو الدومين مو صحيح ما يحاول يدخل
+      if (!email.toLowerCase().endsWith("@csmena.com")) {
+        return;
+      }
+
       try {
         await signInWithEmailAndPassword(auth, email, pass);
+        alert("✅ تم تسجيل الدخول");
         wrongMode = false;
         btnLogin.style.position = "relative";
         btnLogin.style.left = "0px";
@@ -180,7 +108,7 @@
       }
     });
 
-    // حركة الزر 😂
+    // 🔹 حركة الهروب 😂
     btnLogin.addEventListener("mouseover", () => {
       if (!wrongMode) return;
       const x = Math.floor(Math.random() * 200) - 100;
@@ -188,108 +116,6 @@
       btnLogin.style.left = `${x}px`;
       btnLogin.style.top = `${y}px`;
     });
-
-    // خروج
-    document.getElementById("btnLogout").addEventListener("click", async () => {
-      await signOut(auth);
-    });
-
-    // متابعة حالة الدخول
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        loginBox.classList.add("hidden");
-        mainArea.classList.remove("hidden");
-        userNameSpan.textContent = user.displayName || user.email;
-        refreshUI();
-      } else {
-        loginBox.classList.remove("hidden");
-        mainArea.classList.add("hidden");
-        myRequestKey = null;
-      }
-    });
-
-    // الاستماع للتغييرات
-    onValue(requestsRef, (snap) => {
-      allRequests = snap.val() || {};
-      refreshUI();
-    });
-
-    // إرسال طلب
-    btnSubmit.addEventListener("click", async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      if (myRequestKey) return alert("عندك طلب موجود. احذفه لتضيف جديد.");
-      const phone = phoneEl.value.trim();
-      if (!/^[0-9]{9,12}$/.test(phone)) return alert("📞 رقم غير صحيح");
-
-      await push(requestsRef, {
-        userId: user.uid,
-        email: user.email,
-        workLocation: workLocationEl.value,
-        phone,
-        gender: genderEl.value,
-        currentShift: currentShiftEl.value,
-        wantedShift: wantedShiftEl.value,
-        createdAt: Date.now()
-      });
-    });
-
-    // حذف الطلب
-    btnDelete.addEventListener("click", async () => {
-      if (myRequestKey) {
-        await remove(ref(db, "requests/" + myRequestKey));
-        myRequestKey = null;
-      }
-    });
-
-    // تحديث العرض
-    function refreshUI() {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const userLoc = workLocationEl.value;
-      requestsTable.innerHTML = "";
-      matchesTable.innerHTML = "";
-
-      myRequestKey = null;
-      for (const [key, r] of Object.entries(allRequests)) {
-        if (r.workLocation === userLoc) {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${r.workLocation}</td><td>${r.phone}</td><td>${r.gender}</td><td>${r.currentShift}</td><td>${r.wantedShift}</td>`;
-          requestsTable.appendChild(tr);
-        }
-        if (r.userId === user.uid) myRequestKey = key;
-      }
-
-      const seen = new Set();
-      for (const [k1, r1] of Object.entries(allRequests)) {
-        if (r1.workLocation !== userLoc) continue;
-        const match = Object.entries(allRequests).find(([k2, r2]) =>
-          k1 !== k2 &&
-          r2.workLocation === r1.workLocation &&
-          r2.currentShift === r1.wantedShift &&
-          r2.wantedShift === r1.currentShift
-        );
-        if (match && !seen.has(k1)) {
-          seen.add(k1); seen.add(match[0]);
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${r1.workLocation}</td><td>${r1.phone} ⇄ ${match[1].phone}</td><td>${r1.gender}</td><td>${r1.currentShift}</td><td>${r1.wantedShift}</td>`;
-          matchesTable.appendChild(tr);
-        }
-      }
-
-      if (myRequestKey) {
-        const my = allRequests[myRequestKey];
-        myRequestDiv.classList.remove("hidden");
-        myRequestDiv.innerHTML = `📌 طلبك الحالي: ${my.currentShift} ➝ ${my.wantedShift} (${my.phone})`;
-        btnDelete.classList.remove("hidden");
-        btnSubmit.disabled = true;
-      } else {
-        myRequestDiv.classList.add("hidden");
-        btnDelete.classList.add("hidden");
-        btnSubmit.disabled = false;
-      }
-    }
   </script>
 </body>
 </html>
