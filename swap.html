@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام تبديل الشفتات</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    h1 { text-align: center; }
+    form {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px #ccc;
+      margin-bottom: 20px;
+    }
+    label { display: block; margin: 10px 0 5px; }
+    input, button {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #2980B9;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .requests {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 6px #ccc;
+    }
+    .request {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📅 نظام تبديل الشفتات</h1>
+
+  <form id="shiftForm">
+    <label>اسم الموظف:</label>
+    <input type="text" id="name" required>
+
+    <label>شفتك الحالي:</label>
+    <input type="text" id="currentShift" placeholder="مثال: السبت صباح">
+
+    <label>الشفت المطلوب:</label>
+    <input type="text" id="wantedShift" placeholder="مثال: الأحد مسائي">
+
+    <button type="submit">إضافة طلب تبديل</button>
+  </form>
+
+  <div class="requests">
+    <h2>طلبات التبديل</h2>
+    <div id="requestsList"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("shiftForm");
+    const requestsList = document.getElementById("requestsList");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const currentShift = document.getElementById("currentShift").value;
+      const wantedShift = document.getElementById("wantedShift").value;
+
+      const div = document.createElement("div");
+      div.classList.add("request");
+      div.innerText = `👤 ${name} | شفته الحالي: ${currentShift} | يطلب: ${wantedShift}`;
+
+      requestsList.appendChild(div);
+
+      form.reset();
+    });
+  </script>
+
+</body>
+</html>
