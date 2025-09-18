@@ -15,33 +15,16 @@
     .topbar {display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
     .topbar span {font-size:14px;color:#555;}
     .card {background:#fff;padding:15px;margin-bottom:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1);}
-    table {width:100%;border-collapse:collapse;margin-top:10px;}
-    th,td {border:1px solid #ddd;padding:6px;text-align:center;font-size:14px;}
-    th {background:#f9fafc;}
     input,select,button {padding:8px;margin:5px 0;font-size:14px;}
     .primary {background:#2980B9;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .danger {background:#e74c3c;color:#fff;border:none;cursor:pointer;border-radius:4px;}
     .hidden {display:none;}
-    .week-table select {width:100%;}
     #successMsg {display:none; background:#2ecc71; color:#fff; padding:10px; margin-bottom:10px; border-radius:5px;}
-    /* ✅ أنيميشن تسجيل الدخول */
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      20% { transform: translateX(-8px); }
-      40% { transform: translateX(8px); }
-      60% { transform: translateX(-8px); }
-      80% { transform: translateX(8px); }
-      100% { transform: translateX(0); }
-    }
+    /* أنيميشن تسجيل الدخول */
+    @keyframes shake {0%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-8px);}80%{transform:translateX(8px);}100%{transform:translateX(0);}}
     .shake { animation: shake 0.4s; }
-    #loginError {
-      color: #e74c3c;
-      font-weight: bold;
-      opacity: 0;
-      transform: translateY(-5px);
-      transition: all .3s ease;
-    }
-    #loginError.show { opacity: 1; transform: translateY(0); }
+    #loginError {color:#e74c3c;font-weight:bold;opacity:0;transform:translateY(-5px);transition:all .3s ease;}
+    #loginError.show { opacity:1; transform:translateY(0);}
     .requestBox {border:1px solid #ddd;padding:8px;margin:8px 0;border-radius:6px;background:#fafafa;text-align:right;}
     .requestBox strong {color:#2980B9;}
     .secondLine {font-size:13px;color:#555;margin-top:5px;}
@@ -96,23 +79,16 @@
         <label>📌 الجدول المطلوب</label>
         <select id="wantedShift"></select>
 
-        <!-- ✅ الاستثناءات -->
         <label style="margin-top:15px;">🗓️ الاستثناءات</label>
-        <table class="week-table">
-          <tr>
-            <th>الأحد</th><th>الاثنين</th><th>الثلاثاء</th>
-            <th>الأربعاء</th><th>الخميس</th><th>الجمعة</th><th>السبت</th>
-          </tr>
-          <tr id="daysCustom">
-            <td><select data-day="الأحد"></select></td>
-            <td><select data-day="الاثنين"></select></td>
-            <td><select data-day="الثلاثاء"></select></td>
-            <td><select data-day="الأربعاء"></select></td>
-            <td><select data-day="الخميس"></select></td>
-            <td><select data-day="الجمعة"></select></td>
-            <td><select data-day="السبت"></select></td>
-          </tr>
-        </table>
+        <table><tr id="daysCustom">
+          <td><select data-day="الأحد"></select></td>
+          <td><select data-day="الاثنين"></select></td>
+          <td><select data-day="الثلاثاء"></select></td>
+          <td><select data-day="الأربعاء"></select></td>
+          <td><select data-day="الخميس"></select></td>
+          <td><select data-day="الجمعة"></select></td>
+          <td><select data-day="السبت"></select></td>
+        </tr></table>
 
         <label>📆 أيام العطلة</label>
         <div id="daysOff">
@@ -134,7 +110,7 @@
         <div id="matches"></div>
       </div>
 
-      <!-- ✅ الأقسام الجانبية -->
+      <!-- ✅ الأقسام -->
       <div id="allSection" class="card hidden">
         <h3>📋 كل الطلبات</h3>
         <label>📍 فلترة بمكان العمل</label>
@@ -160,7 +136,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyB_EMe5vTzJHdvxH8ooRYgLCQdWZFgvsgQ",
@@ -175,56 +151,25 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    const loginBox=document.getElementById("loginBox");
-    const mainArea=document.getElementById("mainArea");
-    const sidebar=document.getElementById("sidebar");
-    const btnLogin=document.getElementById("btnLogin");
-    const emailEl=document.getElementById("email");
-    const passEl=document.getElementById("password");
-    const loginError=document.getElementById("loginError");
-    const btnLogout=document.getElementById("btnLogout");
-    const btnLogoutTop=document.getElementById("btnLogoutTop");
-    const currentUserEmail=document.getElementById("currentUserEmail");
-
-    const baseShiftEl=document.getElementById("baseShift");
-    const wantedShiftEl=document.getElementById("wantedShift");
-    const btnSubmit=document.getElementById("btnSubmit");
-    const matchesEl=document.getElementById("matches");
-    const successMsg=document.getElementById("successMsg");
-
-    const allRequestsEl=document.getElementById("allRequests");
-    const savedRequestsEl=document.getElementById("savedRequests");
-    const myRequestsEl=document.getElementById("myRequests");
-
-    const filterLocation=document.getElementById("filterLocation");
-    const filterShift=document.getElementById("filterShift");
-
-    const allSection=document.getElementById("allSection");
-    const savedSection=document.getElementById("savedSection");
-    const mineSection=document.getElementById("mineSection");
-
-    let allRequests={};
+    let allRequests = {};
+    let savedRequests = {};
 
     // ✅ الشفتات
-    const shifts = [
-      "٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م",
-      "٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص",
-      "٩م-٦ص","١٠م-٧ص","١١م-٨ص"
-    ];
+    const shifts = ["٨ص-٥م","٩ص-٦م","١٢م-٩م","١م-١٠م","٣م-١٢م","٤م-١ص","٥م-٢ص","٦م-٣ص","٧م-٤ص","٩م-٦ص","١٠م-٧ص","١١م-٨ص"];
     shifts.forEach(s=>{
-      let o1=document.createElement("option");o1.value=s;o1.textContent=s;baseShiftEl.appendChild(o1);
-      let o2=document.createElement("option");o2.value=s;o2.textContent=s;wantedShiftEl.appendChild(o2);
-      let o3=document.createElement("option");o3.value=s;o3.textContent=s;filterShift.appendChild(o3);
+      baseShift.append(new Option(s,s));
+      wantedShift.append(new Option(s,s));
+      filterShift.append(new Option(s,s));
     });
     document.querySelectorAll("#daysCustom select").forEach(sel=>{
-      let opt=document.createElement("option");opt.value="";opt.textContent="--";sel.appendChild(opt);
-      shifts.forEach(s=>{let o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);});
+      sel.append(new Option("--",""));
+      shifts.forEach(s=>sel.append(new Option(s,s)));
     });
 
-    // ✅ تسجيل الدخول مع أنيميشن
+    // ✅ تسجيل الدخول
     btnLogin.addEventListener("click", async () => {
       try {
-        await signInWithEmailAndPassword(auth, emailEl.value.trim(), passEl.value);
+        await signInWithEmailAndPassword(auth, email.value.trim(), password.value);
         loginError.classList.remove("show");
       } catch (e) {
         loginError.textContent = "❌ الإيميل أو كلمة المرور خاطئة";
@@ -245,7 +190,6 @@
         loginBox.classList.remove("hidden");
         mainArea.classList.add("hidden");
         sidebar.classList.add("hidden");
-        currentUserEmail.textContent = "";
       }
     });
 
@@ -255,83 +199,68 @@
     // ✅ إرسال جدولي
     btnSubmit.addEventListener("click", async () => {
       const user=auth.currentUser;if(!user) return;
-      const phone=document.getElementById("phone").value.trim();
+      const existing=Object.values(allRequests).find(r=>r.userId===user.uid);
+      if(existing){alert("⚠️ لديك طلب مسجل بالفعل.");return;}
+
+      const phone=phoneEl.value.trim();
       if(!/^[0-9]{9,12}$/.test(phone)){alert("📞 أدخل رقم هاتف صحيح");return;}
-      const workLocation=document.getElementById("workLocation").value;
-      const gender=document.getElementById("gender").value;
+
+      if(baseShift.value===wantedShift.value){alert("⚠️ الشفت المطلوب لا يمكن أن يساوي الحالي.");return;}
 
       const daysCustom={};
-      document.querySelectorAll("#daysCustom select").forEach(s=>{
-        if(s.value) daysCustom[s.dataset.day]=s.value;
-      });
+      document.querySelectorAll("#daysCustom select").forEach(s=>{if(s.value) daysCustom[s.dataset.day]=s.value;});
       const daysOff=[...document.querySelectorAll("#daysOff input:checked")].map(c=>c.value);
 
       await push(ref(db,"requests"),{
-        userId:user.uid,
-        phone,workLocation,gender,
-        baseShift:baseShiftEl.value,
-        wantedShift:wantedShiftEl.value,
-        daysCustom,
-        daysOff
+        userId:user.uid,phone:phoneEl.value,workLocation:workLocation.value,gender:gender.value,
+        baseShift:baseShift.value,wantedShift:wantedShift.value,
+        daysCustom,daysOff
       });
-
-      successMsg.style.display="block";
-      setTimeout(()=>successMsg.style.display="none",3000);
+      successMsg.style.display="block";setTimeout(()=>successMsg.style.display="none",3000);
     });
 
-    // ✅ تحميل البيانات
-    function loadData(){
-      onValue(ref(db,"requests"),(snap)=>{
-        allRequests=snap.val()||{};
-        renderMatches();
-        renderAll();
-        renderMine();
-      });
-    }
-
-    function renderBox(r,key,withDelete=false){
-      let html=`
-        <div class="requestBox">
-          <strong>📞 ${r.phone}</strong> | ${r.gender} | حالي: ${r.baseShift} | مطلوب: ${r.wantedShift}<br>
-          <div class="secondLine">`;
+    // ✅ عرض الطلب
+    function renderBox(r,key,withDelete=false,withSave=false,isSaved=false){
+      let html=`<div class="requestBox">
+        <strong>📞 ${r.phone}</strong> | ${r.gender} | حالي: ${r.baseShift} | مطلوب: ${r.wantedShift}<br>
+        <div class="secondLine">`;
       ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"].forEach(d=>{
-        if(r.daysCustom && r.daysCustom[d]) html+=`${d}: ${r.daysCustom[d]} | `;
-        else if(r.daysOff && r.daysOff.includes(d)) html+=`${d}: عطلة | `;
+        if(r.daysCustom&&r.daysCustom[d]) html+=`${d}: ${r.daysCustom[d]} | `;
+        else if(r.daysOff&&r.daysOff.includes(d)) html+=`${d}: عطلة | `;
         else html+=`${d}: ${r.baseShift} | `;
       });
       html+=`</div>`;
       if(withDelete) html+=`<button onclick="deleteRequest('${key}')" class="danger">🗑️ حذف</button>`;
+      if(withSave) html+=`<button onclick="saveRequest('${key}')" class="primary">💾 حفظ</button>`;
+      if(isSaved) html+=`<button onclick="deleteSaved('${key}')" class="danger">🗑️ إزالة</button>`;
       html+=`</div>`;
       return html;
     }
 
-    window.deleteRequest=async function(key){
-      await remove(ref(db,"requests/"+key));
-    }
+    window.deleteRequest=async k=>await remove(ref(db,"requests/"+k));
+    window.saveRequest=async k=>{const u=auth.currentUser;if(!u)return;await set(ref(db,`saved/${u.uid}/${k}`),allRequests[k]);}
+    window.deleteSaved=async k=>{const u=auth.currentUser;if(!u)return;await remove(ref(db,`saved/${u.uid}/${k}`));}
 
     // ✅ المطابقات
     function renderMatches(){
-      const user=auth.currentUser;if(!user) return;
-      matchesEl.innerHTML="";
-      let myReqKey=Object.keys(allRequests).find(k=>allRequests[k].userId===user.uid);
-      if(!myReqKey) return;
-      let myReq=allRequests[myReqKey];
+      const u=auth.currentUser;if(!u)return;matches.innerHTML="";
+      const myK=Object.keys(allRequests).find(k=>allRequests[k].userId===u.uid);if(!myK)return;
+      const my=allRequests[myK];
       Object.entries(allRequests).forEach(([k,r])=>{
-        if(r.userId!==user.uid && r.baseShift===myReq.wantedShift && r.wantedShift===myReq.baseShift){
-          matchesEl.innerHTML+=renderBox(r,k);
+        if(r.userId!==u.uid&&r.baseShift===my.wantedShift&&r.wantedShift===my.baseShift){
+          matches.innerHTML+=renderBox(r,k,false,true);
         }
       });
     }
 
-    // ✅ كل الطلبات مع فلترة
+    // ✅ كل الطلبات
     function renderAll(){
       allRequestsEl.innerHTML="";
-      const loc=filterLocation.value;
-      const sh=filterShift.value;
+      const loc=filterLocation.value,sh=filterShift.value;
       Object.entries(allRequests).forEach(([k,r])=>{
-        if(loc && r.workLocation!==loc) return;
-        if(sh && r.wantedShift!==sh) return;
-        allRequestsEl.innerHTML+=renderBox(r,k);
+        if(loc&&r.workLocation!==loc) return;
+        if(sh&&r.wantedShift!==sh) return;
+        allRequestsEl.innerHTML+=renderBox(r,k,false,true);
       });
     }
     filterLocation.addEventListener("change",renderAll);
@@ -339,21 +268,28 @@
 
     // ✅ طلباتي
     function renderMine(){
-      const user=auth.currentUser;if(!user) return;
-      myRequestsEl.innerHTML="";
+      const u=auth.currentUser;if(!u)return;myRequests.innerHTML="";
       Object.entries(allRequests).forEach(([k,r])=>{
-        if(r.userId===user.uid){
-          myRequestsEl.innerHTML+=renderBox(r,k,true);
-        }
+        if(r.userId===u.uid) myRequests.innerHTML+=renderBox(r,k,true,false);
       });
+    }
+
+    // ✅ المحفوظة
+    function renderSaved(){
+      const u=auth.currentUser;if(!u)return;savedRequestsEl.innerHTML="";
+      Object.entries(savedRequests).forEach(([k,r])=>savedRequestsEl.innerHTML+=renderBox(r,k,false,false,true));
+    }
+
+    // ✅ تحميل البيانات
+    function loadData(){
+      onValue(ref(db,"requests"),snap=>{allRequests=snap.val()||{};renderMatches();renderAll();renderMine();});
+      onValue(ref(db,"saved/"+auth.currentUser.uid),snap=>{savedRequests=snap.val()||{};renderSaved();});
     }
 
     // ✅ تبديل الأقسام
     document.querySelectorAll(".sidebar button[data-section]").forEach(btn=>{
       btn.addEventListener("click",()=>{
-        allSection.classList.add("hidden");
-        savedSection.classList.add("hidden");
-        mineSection.classList.add("hidden");
+        allSection.classList.add("hidden");savedSection.classList.add("hidden");mineSection.classList.add("hidden");
         document.getElementById(btn.dataset.section+"Section").classList.remove("hidden");
       });
     });
