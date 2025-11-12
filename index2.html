@@ -19,7 +19,7 @@
     // 🔹 زر اختبار الاتصال
     document.getElementById("btn").addEventListener("click", async () => {
       try {
-        const { data, error } = await supabase.from("abood test").select("*");
+        const { data, error } = await supabase.from("allo").select("*");
         if (error) {
           alert("❌ في خطأ: " + error.message);
           console.error(error);
