@@ -426,7 +426,95 @@ textarea#output {
 </style>
 </head>
 <body>
-  
+  <!-- واجهة تسجيل الدخول (تغطي الصفحة كلها) -->
+<div id="loginLayer" style="
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0f1724, #243b55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  color: white;
+  font-family: 'Cairo', sans-serif;
+">
+  <div style="
+    background: rgba(255,255,255,0.08);
+    padding: 35px;
+    border-radius: 12px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+  ">
+    <h2>تسجيل الدخول</h2>
+    <input id="loginEmail" type="email" placeholder="البريد الإلكتروني" style="width:90%;padding:10px;margin:8px 0;border:none;border-radius:6px;background:rgba(255,255,255,0.2);color:white;">
+    <input id="loginPass" type="password" placeholder="كلمة المرور" style="width:90%;padding:10px;margin:8px 0;border:none;border-radius:6px;background:rgba(255,255,255,0.2);color:white;">
+    <button id="loginSubmit" style="width:95%;padding:10px;margin-top:10px;border:none;border-radius:6px;background:#00b4d8;color:white;font-size:15px;cursor:pointer;">دخول</button>
+    <p id="loginMsg" style="margin-top:10px;font-size:14px;color:#f8d210;"></p>
+  </div>
+</div>
+
+<!-- سكربت Supabase لتسجيل الدخول -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+  // إعداد Supabase
+  const SUPABASE_URL = "https://ryjbcecsfjfbksfejbnm.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5amJjZWNzZmpmYmtzZmVqYm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MDEwMjIsImV4cCI6MjA3ODQ3NzAyMn0.IPsvANF9n7SbOlQo-BMt55QQWlQcptWbA1kL9nxCJjQ";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const layer = document.getElementById('loginLayer');
+  const loginBtn = document.getElementById('loginSubmit');
+  const msg = document.getElementById('loginMsg');
+
+  // منع التفاعل مع الصفحة قبل الدخول
+  document.body.style.overflow = "hidden";
+
+  // لو المستخدم مسجل دخول مسبقًا نخفي الواجهة
+  (async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session && data.session.user) {
+      layer.style.display = "none";
+      document.body.style.overflow = "auto";
+    }
+  })();
+
+  // عند الضغط على زر الدخول
+  loginBtn.addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value.trim();
+    msg.textContent = "⏳ جاري التحقق...";
+
+    if (!email || !password) {
+      msg.textContent = "⚠️ الرجاء إدخال البريد وكلمة المرور";
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        console.error("Login error:", error.message);
+        msg.textContent = "❌ البريد أو كلمة المرور غير صحيحة";
+        return;
+      }
+
+      msg.textContent = "✅ تم تسجيل الدخول";
+      layer.style.transition = "opacity 0.6s ease";
+      layer.style.opacity = "0";
+      setTimeout(() => {
+        layer.style.display = "none";
+        document.body.style.overflow = "auto";
+      }, 600);
+
+    } catch (err) {
+      console.error(err);
+      msg.textContent = "⚠️ خطأ في الاتصال بـ Supabase";
+    }
+  });
+</script>
  <script>
 async function checkVersion() {
   try {
