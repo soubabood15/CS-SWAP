@@ -2,48 +2,34 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>تسجيل الدخول</title>
+  <title>اتصال Supabase</title>
 </head>
 <body>
-  <h2>تسجيل الدخول</h2>
-
-  <input type="email" id="email" placeholder="الإيميل"><br><br>
-  <input type="password" id="password" placeholder="كلمة السر"><br><br>
-  <button id="loginBtn">دخول</button>
-
-  <p id="result"></p>
+  <h2>اختبار الاتصال بقاعدة البيانات</h2>
+  <button id="btn">اختبار الاتصال</button>
 
   <script src="https://unpkg.com/@supabase/supabase-js"></script>
   <script>
-    const SUPABASE_URL = "https://YOUR_PROJECT.supabase.co";
-    const SUPABASE_KEY = "YOUR_ANON_KEY";
+    // 🔑 بيانات الاتصال (استبدلي المفتاح باللي عندك)
+    const SUPABASE_URL = "https://ryjbcecsfjfbksfejbnm.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5amJjZWNzZmpmYmtzZmVqYm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MDEwMjIsImV4cCI6MjA3ODQ3NzAyMn0.IPsvANF9n7SbOlQo-BMt55QQWlQcptWbA1kL9nxCJjQ";
+
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const loginBtn = document.getElementById("loginBtn");
-    const result = document.getElementById("result");
-
-    loginBtn.addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("email", email)
-        .eq("password", password)
-        .single();
-
-      if (error || !data) {
-        result.textContent = "❌ خطأ في الإيميل أو كلمة السر";
-        return;
-      }
-
-      result.textContent = `✅ أهلاً ${data.role === "admin" ? "بالمدير" : "بالمستخدم"} ${data.email}`;
-      
-      // إذا كان مدير
-      if (data.role === "admin") {
-        // هنا نقدر نحوله لصفحة تعديل بيانات مثلاً
-        // window.location.href = "admin.html";
+    // 🔹 زر اختبار الاتصال
+    document.getElementById("btn").addEventListener("click", async () => {
+      try {
+        const { data, error } = await supabase.from("users").select("*");
+        if (error) {
+          alert("❌ في خطأ: " + error.message);
+          console.error(error);
+        } else {
+          console.log(data);
+          alert("✅ تم الاتصال بنجاح! عدد المستخدمين: " + data.length);
+        }
+      } catch (err) {
+        alert("⚠️ حدث خطأ في الاتصال");
+        console.error(err);
       }
     });
   </script>
