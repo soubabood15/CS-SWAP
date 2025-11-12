@@ -1,45 +1,62 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>تسجيل الدخول</title>
+  <meta charset="UTF-8" />
+  <title>مشروعي — تسجيل دخول</title>
   <style>
     body {
-      font-family: 'Cairo', sans-serif;
-      background: linear-gradient(135deg, #141E30, #243B55);
-      height: 100vh;
       margin: 0;
+      font-family: 'Cairo', sans-serif;
+      background: #f5f6fa;
+    }
+
+    /* المشروع الأساسي */
+    #app {
+      visibility: hidden;
+    }
+
+    /* واجهة تسجيل الدخول */
+    #login-overlay {
+      position: fixed;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: linear-gradient(135deg, #0f1724, #243b55);
+      z-index: 99999;
       color: white;
     }
+
     .login-box {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 35px;
+      width: 320px;
+      padding: 30px;
       border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
       text-align: center;
-      width: 300px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
     }
+
     .login-box h2 {
       margin-bottom: 20px;
     }
+
     .login-box input {
       width: 90%;
       padding: 10px;
       margin: 8px 0;
       border: none;
       border-radius: 6px;
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
       color: white;
       font-size: 14px;
       outline: none;
     }
+
     .login-box input::placeholder {
       color: #ccc;
     }
+
     .login-box button {
       width: 95%;
       padding: 10px;
@@ -50,75 +67,130 @@
       color: white;
       font-size: 15px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: 0.3s;
     }
+
     .login-box button:hover {
       background: #0096c7;
     }
+
     #msg {
       margin-top: 10px;
       font-size: 14px;
       color: #f8d210;
       min-height: 18px;
     }
+
+    /* منع التفاعل أثناء شاشة الدخول */
+    body.login-blocked *:not(#login-overlay):not(#login-overlay *) {
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* بعد الدخول */
+    .show-app #app {
+      visibility: visible;
+    }
+
+    .hide-overlay {
+      transition: opacity 0.6s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
-<body>
-  <div class="login-box">
-    <h2>تسجيل الدخول</h2>
-    <input id="email" type="text" placeholder="الإيميل">
-    <input id="password" type="password" placeholder="كلمة المرور">
-    <button id="loginBtn">دخول</button>
-    <p id="msg"></p>
+<body class="login-blocked">
+
+  <!-- شاشة تسجيل الدخول -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <h2>تسجيل الدخول</h2>
+      <input id="email" type="email" placeholder="البريد الإلكتروني" autocomplete="username">
+      <input id="password" type="password" placeholder="كلمة المرور" autocomplete="current-password">
+      <button id="loginBtn">دخول</button>
+      <p id="msg"></p>
+    </div>
+  </div>
+
+  <!-- محتوى مشروعك هنا -->
+  <div id="app">
+    <h1 style="text-align:center;margin-top:50px;">✨ أهلاً بك في مشروعك ✨</h1>
+    <p style="text-align:center;">لن يظهر هذا المحتوى إلا بعد تسجيل الدخول الصحيح.</p>
+
+    <div style="text-align:center; margin-top:40px;">
+      <button id="logoutBtn" style="padding:10px 20px; border:none; border-radius:6px; background:#e63946; color:white; cursor:pointer;">
+        تسجيل خروج
+      </button>
+    </div>
   </div>
 
   <!-- مكتبة Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // بيانات Supabase الخاصة بمشروعك
     const SUPABASE_URL = "https://ryjbcecsfjfbksfejbnm.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5amJjZWNzZmpmYmtzZmVqYm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MDEwMjIsImV4cCI6MjA3ODQ3NzAyMn0.IPsvANF9n7SbOlQo-BMt55QQWlQcptWbA1kL9nxCJjQ";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    const overlay = document.getElementById("login-overlay");
     const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
     const msg = document.getElementById("msg");
 
+    // ✅ إظهار التطبيق بعد الدخول
+    function showApp() {
+      document.body.classList.remove("login-blocked");
+      document.body.classList.add("show-app");
+      overlay.classList.add("hide-overlay");
+      setTimeout(() => (overlay.style.display = "none"), 600);
+    }
+
+    // 🔍 فحص الجلسة (لو المستخدم مسجل مسبقاً)
+    async function checkSession() {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (data.session && data.session.user) {
+          showApp();
+        }
+      } catch (e) {
+        console.error("Session error:", e);
+      }
+    }
+
+    checkSession();
+
+    // 🔐 تسجيل الدخول
     loginBtn.addEventListener("click", async () => {
+      msg.textContent = "⏳ جاري التحقق...";
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
       if (!email || !password) {
-        msg.textContent = "⚠️ أدخل الإيميل وكلمة المرور";
+        msg.textContent = "⚠️ أدخل البريد وكلمة المرور";
         return;
       }
 
-      msg.textContent = "⏳ جاري التحقق...";
-
       try {
-        const { data, error } = await client
-          .from("allo")
-          .select("*")
-          .eq("email", email)
-          .eq("password", password)
-          .single();
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (error || !data) {
-          console.error(error);
-          msg.textContent = "❌ الإيميل أو كلمة المرور غير صحيحة";
+        if (error) {
+          console.error("Auth error:", error.message);
+          msg.textContent = "❌ " + (error.message === "Invalid login credentials" ? "البريد أو كلمة المرور غير صحيحة" : error.message);
           return;
         }
 
-        msg.textContent = "✅ تم تسجيل الدخول، يتم التحويل...";
-
-        // 🔗 هنا الربط مع مشروعك الأساسي
-        // بعد نجاح تسجيل الدخول نفتح صفحة مشروعك الكبير
-        window.location.href = "missingsol6.html";
+        msg.textContent = "✅ تم تسجيل الدخول بنجاح";
+        showApp();
 
       } catch (err) {
-        console.error(err);
-        msg.textContent = "⚠️ خطأ في الاتصال بقاعدة البيانات";
+        console.error("Connection error:", err);
+        msg.textContent = "⚠️ خطأ في الاتصال بـ Supabase";
       }
+    });
+
+    // 🚪 تسجيل الخروج
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      location.reload();
     });
   </script>
 </body>
