@@ -1,35 +1,123 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>اتصال Supabase</title>
+  <title>تسجيل الدخول</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #141E30, #243B55);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .login-box {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 35px;
+      border-radius: 12px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+    }
+    .login-box h2 {
+      margin-bottom: 20px;
+    }
+    .login-box input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+    .login-box input::placeholder {
+      color: #ccc;
+    }
+    .login-box button {
+      width: 95%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 6px;
+      background: #00b4d8;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .login-box button:hover {
+      background: #0096c7;
+    }
+    #msg {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #f8d210;
+      min-height: 18px;
+    }
+  </style>
 </head>
 <body>
-  <h2>اختبار الاتصال بقاعدة البيانات</h2>
-  <button id="btn">اختبار الاتصال</button>
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <input id="email" type="text" placeholder="الإيميل">
+    <input id="password" type="password" placeholder="كلمة المرور">
+    <button id="loginBtn">دخول</button>
+    <p id="msg"></p>
+  </div>
 
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <!-- مكتبة Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // 🔑 بيانات الاتصال (استبدلي المفتاح باللي عندك)
+    // بيانات Supabase الخاصة بمشروعك
     const SUPABASE_URL = "https://ryjbcecsfjfbksfejbnm.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5amJjZWNzZmpmYmtzZmVqYm5tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MDEwMjIsImV4cCI6MjA3ODQ3NzAyMn0.IPsvANF9n7SbOlQo-BMt55QQWlQcptWbA1kL9nxCJjQ";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 🔹 زر اختبار الاتصال
-    document.getElementById("btn").addEventListener("click", async () => {
+    const loginBtn = document.getElementById("loginBtn");
+    const msg = document.getElementById("msg");
+
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!email || !password) {
+        msg.textContent = "⚠️ أدخل الإيميل وكلمة المرور";
+        return;
+      }
+
+      msg.textContent = "⏳ جاري التحقق...";
+
       try {
-        const { data, error } = await supabase.from("allo").select("*");
-        if (error) {
-          alert("❌ في خطأ: " + error.message);
+        const { data, error } = await client
+          .from("allo")
+          .select("*")
+          .eq("email", email)
+          .eq("password", password)
+          .single();
+
+        if (error || !data) {
           console.error(error);
-        } else {
-          console.log(data);
-          alert("✅ تم الاتصال بنجاح! عدد المستخدمين: " + data.length);
+          msg.textContent = "❌ الإيميل أو كلمة المرور غير صحيحة";
+          return;
         }
+
+        msg.textContent = "✅ تم تسجيل الدخول، يتم التحويل...";
+
+        // 🔗 هنا الربط مع مشروعك الأساسي
+        // بعد نجاح تسجيل الدخول نفتح صفحة مشروعك الكبير
+        window.location.href = "missingsol6.html";
+
       } catch (err) {
-        alert("⚠️ حدث خطأ في الاتصال");
         console.error(err);
+        msg.textContent = "⚠️ خطأ في الاتصال بقاعدة البيانات";
       }
     });
   </script>
